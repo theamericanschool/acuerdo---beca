@@ -45,7 +45,6 @@
 
   <div class="section-title">2. Beneficio Otorgado</div>
   <p class="text-block">El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
-  <p class="text-block">El beneficio incluye el acceso al programa educativo, plataforma de estudio, clases en vivo, recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
   <div class="data-grid">
     <p><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="valorInscripcion">-</span></p>
   </div>
@@ -55,21 +54,16 @@
   <div class="data-grid">
     <p><strong>Fecha acordada para realizar el pago:</strong> <span id="fechaPago">-</span></p>
   </div>
-  <p class="text-block">El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
 
   <div class="section-title">4. Compromisos de la Escuela</div>
-  <p class="text-block">LA ESCUELA AMERICANA DEL INGLÉS se compromete a:</p>
   <ul class="ul-commitments">
     <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo.</li>
     <li>Respetar el beneficio y el valor de inscripción aquí establecidos.</li>
-    <li>Proporcionar al beneficiario la información y los medios necesarios para completar su inscripción.</li>
     <li>Proceder con la activación del programa una vez cumplidas las condiciones de inscripción.</li>
-    <li>Entregar al beneficiario la información y comprobantes de pago correspondientes a su proceso de inscripción y activación.</li>
   </ul>
 
   <div class="section-title">5. Aceptación</div>
-  <p class="text-block">El beneficiario declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar.</p>
-  <p class="text-block">Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp y correos electrónicos pertinentes al cobro de la misma.</p>
+  <p class="text-block">El beneficiario declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación.</p>
 
   <div class="data-grid">
     <p><strong>Representante de la institución:</strong> <span id="representante">-</span></p>
@@ -77,13 +71,13 @@
   </div>
 
   <div class="legal-disclaimer">
-    LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas externas ajenas al control razonable de la institución.
+    LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario.
   </div>
 
   <form id="signForm" style="margin-top: 20px;">
     <label style="font-size: 13px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
       <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
-      <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
+      <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong></span>
     </label>
 
     <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
@@ -91,17 +85,16 @@
 </div>
 
 <script>
-  // 1. URL DE TU GOOGLE APPS SCRIPT INTEGRADA
+  // URL OFICIAL DE TU GOOGLE APPS SCRIPT
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
 
-  // 2. Extracción de parámetros desde la URL
+  // Leer parámetros de la URL
   const urlParams = new URLSearchParams(window.location.search);
   const getParam = (param, defaultText) => urlParams.get(param) || defaultText;
 
-  // Carga de datos en la interfaz
   const datosEstudiante = {
-    nombre: getParam('nombre', 'Estudiante Sin Nombre'),
-    telefono: getParam('telefono', 'Sin teléfono'),
+    nombre: getParam('nombre', 'Estudiante de Prueba'),
+    telefono: getParam('telefono', '0000000000'),
     email: getParam('email', ''),
     direccion: getParam('direccion', 'No especificada'),
     fechaAcuerdo: getParam('fechaAcuerdo', new Date().toLocaleDateString()),
@@ -111,7 +104,7 @@
     codigoEstudiante: getParam('codigoEstudiante', 'EST-' + Math.floor(1000 + Math.random() * 9000))
   };
 
-  // Renderizar en pantalla
+  // Asignar a la pantalla
   document.getElementById('nombre').innerText = datosEstudiante.nombre;
   document.getElementById('telefono').innerText = datosEstudiante.telefono;
   document.getElementById('email').innerText = datosEstudiante.email || 'Sin correo registrado';
@@ -122,12 +115,12 @@
   document.getElementById('representante').innerText = datosEstudiante.representante;
   document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
 
-  // 3. EVENTO AUTOMÁTICO: Notificar apertura/lectura a Google Sheets
+  // EVENTO 1: Notificar Lectura/Apertura al cargar
   window.addEventListener('load', () => {
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         accion: "ABRIR",
         codigoEstudiante: datosEstudiante.codigoEstudiante,
@@ -139,47 +132,43 @@
     });
   });
 
-  // 4. EVENTO FIRMA: Captura de IP y confirmación
+  // EVENTO 2: Procesar la Firma
   document.getElementById('signForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const btn = document.getElementById('btnSign');
     btn.disabled = true;
-    btn.innerText = "Registrando firma y verificando IP...";
+    btn.innerText = "Registrando firma...";
 
+    let userIp = "IP no detectada";
     try {
-      // Captura de IP pública del estudiante
-      let userIp = "IP no detectada";
-      try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipRes.json();
-        userIp = ipData.ip;
-      } catch (ipErr) {
-        console.log("No se pudo obtener IP externa");
-      }
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipRes.json();
+      userIp = ipData.ip;
+    } catch (ipErr) {
+      console.log("No se pudo obtener IP pública");
+    }
 
-      // Enviar registro de firma al backend
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: "FIRMAR",
-          codigoEstudiante: datosEstudiante.codigoEstudiante,
-          nombre: datosEstudiante.nombre,
-          email: datosEstudiante.email,
-          ip: userIp
-        })
-      });
-
+    // Enviar datos usando tipo 'text/plain' para evitar bloqueos CORS con Google Apps Script
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        accion: "FIRMAR",
+        codigoEstudiante: datosEstudiante.codigoEstudiante,
+        nombre: datosEstudiante.nombre,
+        email: datosEstudiante.email,
+        ip: userIp
+      })
+    }).then(() => {
       alert("¡Acuerdo firmado con éxito!\n\nSe ha registrado tu firma electrónica junto con la IP: " + userIp);
       btn.innerText = "Acuerdo Firmado Exitosamente";
-
-    } catch (err) {
-      alert("Ocurrió un error al procesar la firma. Intenta nuevamente.");
+    }).catch((error) => {
+      alert("Error al enviar la firma. Intenta de nuevo.");
       btn.disabled = false;
       btn.innerText = "Aceptar y Firmar Digitalmente";
-    }
+    });
   });
 </script>
 
