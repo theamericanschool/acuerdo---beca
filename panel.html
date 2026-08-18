@@ -85,14 +85,19 @@
     
     <form id="generatorForm">
       <div class="form-grid">
-        <div class="form-group full-width">
+        <div class="form-group">
+          <label>Código de Estudiante (CRM):</label>
+          <input type="text" id="codigoEstudiante" placeholder="Ej. ABG-4582" required>
+        </div>
+
+        <div class="form-group">
           <label>Nombre Completo del Estudiante:</label>
-          <input type="text" id="nombre" placeholder="Ej. Nombre" required>
+          <input type="text" id="nombre" placeholder="Ej. Gabriela Urdaneta" required>
         </div>
 
         <div class="form-group">
           <label>Teléfono (WhatsApp con código):</label>
-          <input type="text" id="telefono" placeholder="Ej. +100000000" required>
+          <input type="text" id="telefono" placeholder="Ej. +13057724132" required>
         </div>
 
         <div class="form-group">
@@ -102,22 +107,22 @@
 
         <div class="form-group">
           <label>Dirección:</label>
-          <input type="text" id="direccion" placeholder="Ej. Direccion" required>
+          <input type="text" id="direccion" placeholder="Ej. 132 st SC 33053" required>
         </div>
 
         <div class="form-group">
           <label>Valor Inscripción:</label>
-          <input type="text" id="valorInscripcion" value="259 USD" required>
+          <input type="text" id="valorInscripcion" value="259USD" required>
         </div>
 
         <div class="form-group">
           <label>Fecha Compromiso de Pago:</label>
-          <input type="date" id="fechaPago" value="0000-00-00" required>
+          <input type="date" id="fechaPago" value="2026-08-25" required>
         </div>
 
         <div class="form-group">
           <label>Nombre del Asesor (Representante):</label>
-          <input type="text" id="representante" placeholder="Ej. Asesor" required>
+          <input type="text" id="representante" placeholder="Ej. Diego Caridad" required>
         </div>
       </div>
 
@@ -143,7 +148,7 @@
       <table>
         <thead>
           <tr>
-            <th>Código</th>
+            <th>Código CRM</th>
             <th>Estudiante</th>
             <th>Correo</th>
             <th>Asesor</th>
@@ -166,6 +171,7 @@
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
+    const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim();
     const nombre = document.getElementById('nombre').value;
     const telefono = document.getElementById('telefono').value;
     const email = document.getElementById('email').value;
@@ -173,9 +179,6 @@
     const valorInscripcion = document.getElementById('valorInscripcion').value;
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value;
-    
-    // Generación de código con el formato institucional ABG-
-    const codigoEstudiante = "ABG-" + Math.floor(1000 + Math.random() * 9000);
 
     // Formatear la URL con la sintaxis de parámetros exacta
     const params = new URLSearchParams({
