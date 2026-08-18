@@ -65,21 +65,24 @@
     .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
     .btn-pdf:hover { background: #0369a1; }
 
-    /* ESTILOS EXACTOS DEL PDF ADMINISTRATIVO FIELES AL DOCUMENTO ORIGINAL */
-    #pdfTemplate { display: none; padding: 30px; font-family: 'Arial', sans-serif; font-size: 11px; color: #000; line-height: 1.35; background: white; }
-    #pdfTemplate .pdf-header { text-align: center; margin-bottom: 15px; }
-    #pdfTemplate .pdf-logo { max-width: 200px; height: auto; margin-bottom: 10px; }
-    #pdfTemplate h1 { font-size: 13px; font-weight: bold; margin: 0; text-transform: uppercase; color: #000; }
-    #pdfTemplate h2 { font-size: 11px; font-weight: bold; margin: 2px 0 15px 0; color: #000; }
-    #pdfTemplate .pdf-section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; }
-    #pdfTemplate p { margin: 3px 0; text-align: justify; }
-    #pdfTemplate ul { margin: 3px 0 8px 18px; padding: 0; }
-    #pdfTemplate li { margin-bottom: 2px; }
+    /* ESTILOS EXACTOS DEL PDF ADMINISTRATIVO */
+    #pdfTemplate { display: none; width: 680px; padding: 20px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #111; line-height: 1.4; background: white; }
+    #pdfTemplate .pdf-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #004085; padding-bottom: 12px; }
+    #pdfTemplate .pdf-logo { max-width: 220px; height: auto; margin-bottom: 8px; }
+    #pdfTemplate h1 { font-size: 15px; font-weight: bold; margin: 0; text-transform: uppercase; color: #004085; }
+    #pdfTemplate h2 { font-size: 12px; font-weight: bold; margin: 3px 0 0 0; color: #444; }
+    #pdfTemplate .pdf-section-title { font-size: 12px; font-weight: bold; text-transform: uppercase; margin-top: 15px; margin-bottom: 6px; color: #004085; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; }
+    #pdfTemplate p { margin: 5px 0; text-align: justify; }
+    #pdfTemplate ul { margin: 5px 0 10px 20px; padding: 0; }
+    #pdfTemplate li { margin-bottom: 3px; }
     
-    /* CAJA DESTACADA DE AUDITORÍA Y FIRMA DIGITAL EN EL PDF */
-    #pdfTemplate .audit-highlight-box { background: #f0fdf4; border: 2px solid #16a34a; padding: 12px; margin-top: 15px; border-radius: 6px; }
-    #pdfTemplate .audit-highlight-title { font-weight: bold; color: #15803d; text-transform: uppercase; font-size: 11px; margin-bottom: 6px; border-bottom: 1px solid #bbf7d0; padding-bottom: 3px; }
-    #pdfTemplate .highlight-item { font-size: 11px; margin: 3px 0; color: #166534; }
+    #pdfTemplate .data-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    #pdfTemplate .data-table td { padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 11.5px; }
+
+    /* RECUADRO DESTACADO DE AUDITORÍA Y FIRMA */
+    #pdfTemplate .audit-highlight-box { background: #f0fdf4; border: 2px solid #16a34a; padding: 14px; margin-top: 20px; border-radius: 6px; }
+    #pdfTemplate .audit-highlight-title { font-weight: bold; color: #15803d; text-transform: uppercase; font-size: 12px; margin-bottom: 8px; border-bottom: 1px solid #bbf7d0; padding-bottom: 4px; }
+    #pdfTemplate .highlight-item { font-size: 11.5px; margin: 4px 0; color: #166534; }
   </style>
 </head>
 <body>
@@ -182,7 +185,7 @@
 
 </div>
 
-<!-- TEMPLATE PDF DENTRO DEL PANEL CON FIEL REPRODUCCIÓN DEL DOCUMENTO Y DATOS DE FIRMA RESALTADOS -->
+<!-- TEMPLATE COMPLETO PARA COMPILAR EL PDF SIN CORTES -->
 <div id="pdfTemplate">
   <div class="pdf-header">
     <img src="logo.png" class="pdf-logo"><br>
@@ -193,19 +196,24 @@
   <p>Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación.</p>
 
   <div class="pdf-section-title">1. DATOS DEL BENEFICIARIO</div>
-  <p><strong>Nombre:</strong> <span id="pdfNombre">-</span></p>
-  <p><strong>Teléfono:</strong> <span id="pdfTelefono">-</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Correo:</strong> <span id="pdfEmail">-</span></p>
-  <p><strong>Dirección:</strong> <span id="pdfDireccion">-</span></p>
-  <p><strong>Fecha del acuerdo:</strong> <span id="pdfFechaAcuerdo">-</span></p>
+  <table class="data-table">
+    <tr><td><strong>Nombre:</strong> <span id="pdfNombre">-</span></td><td><strong>Teléfono:</strong> <span id="pdfTelefono">-</span></td></tr>
+    <tr><td><strong>Correo:</strong> <span id="pdfEmail">-</span></td><td><strong>Dirección:</strong> <span id="pdfDireccion">-</span></td></tr>
+    <tr><td colspan="2"><strong>Fecha del acuerdo:</strong> <span id="pdfFechaAcuerdo">-</span></td></tr>
+  </table>
 
   <div class="pdf-section-title">2. BENEFICIO OTORGADO</div>
   <p>El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
   <p>El beneficio incluye el acceso al programa educativo, plataforma de estudio, clases en vivo, recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
-  <p><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="pdfValor">-</span></p>
+  <table class="data-table">
+    <tr><td><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="pdfValor">-</span></td></tr>
+  </table>
 
   <div class="pdf-section-title">3. RESERVA Y COMPROMISO</div>
   <p>El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción.</p>
-  <p><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span></p>
+  <table class="data-table">
+    <tr><td><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span></td></tr>
+  </table>
   <p>El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
 
   <div class="pdf-section-title">4. COMPROMISOS DE LA ESCUELA</div>
@@ -219,22 +227,24 @@
   </ul>
 
   <div class="pdf-section-title">5. ACEPTACIÓN</div>
-  <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con el/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
-  <p>La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
-  
-  <p style="margin-top: 8px;"><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></p>
-  <p><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></p>
+  <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
-  <p style="font-size: 8.5px; color: #444; margin-top: 10px; text-align: justify;">
+  <p style="margin-top: 10px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
+
+  <table class="data-table" style="margin-top: 10px;">
+    <tr><td><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></td><td><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></td></tr>
+  </table>
+
+  <p style="font-size: 9px; color: #555; margin-top: 10px; text-align: justify;">
     LA ESCUELA AMERICANA DEL INGLES / AMERICAN BOOK GROUP, no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas o externas ajenas al control razonable de la institución.<br>
     La institución garantiza las condiciones del beneficio expresamente establecidas en este acuerdo, pero no garantiza resultados académicos, laborales, económicos o personales específicos, los cuales pueden depender de la participación, dedicación y circunstancias particulares del estudiante.
   </p>
 
-  <!-- RECUADRO DESTACADO DE AUDITORÍA Y REGISTRO DE FIRMA DIGITAL -->
+  <!-- RECUADRO DE FIRMA DIGITAL Y AUDITORÍA -->
   <div class="audit-highlight-box">
     <div class="audit-highlight-title">🔒 REGISTRO Y CONSTANCIA DE AUDITORÍA DIGITAL DE FIRMA</div>
-    <div class="highlight-item">✔ <strong>Estudiante Firmante:</strong> <span id="pdfAuditNombre" style="text-decoration: underline;">-</span></div>
-    <div class="highlight-item">✔ <strong>Código CRM Registrado:</strong> <span id="pdfAuditCodigo">-</span></div>
+    <div class="highlight-item">✔ <strong>Estudiante Firmante:</strong> <span id="pdfAuditNombre" style="text-decoration: underline; font-weight: bold;">-</span></div>
+    <div class="highlight-item">✔ <strong>Código CRM Registrado:</strong> <span id="pdfAuditCodigo" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Fecha y Hora Exacta de Firma:</strong> <span id="pdfAuditFecha" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Dirección IP de Registro:</strong> <span id="pdfAuditIp" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía."</div>
@@ -338,8 +348,9 @@
       margin:       [10, 10, 10, 10],
       filename:     `Constancia_Acuerdo_${data.codigoEstudiante}_${data.nombre.replace(/\s+/g, '_')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(template).save().then(() => {
