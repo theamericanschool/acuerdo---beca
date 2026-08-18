@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Asesores - La Escuela del Inglés</title>
+  <!-- Librería html2pdf.js para generación de PDF administrativo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #004085;
@@ -19,9 +21,8 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
     
-    .dashboard-container { max-width: 900px; margin: 0 auto; }
+    .dashboard-container { max-width: 950px; margin: 0 auto; }
     
-    /* ENCABEZADO CON LOGO */
     .top-bar { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
     .header-info { display: flex; align-items: center; gap: 15px; }
     .logo-img { height: 48px; width: auto; object-fit: contain; }
@@ -29,7 +30,6 @@
     .top-bar p { margin: 3px 0 0 0; font-size: 12px; color: #64748b; }
     .badge-status { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 
-    /* TARJETA DEL FORMULARIO */
     .card { background: var(--card-bg); padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
     .card-title { font-size: 14px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
 
@@ -44,7 +44,6 @@
     .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 15px; }
     .btn-submit:hover { background: var(--primary-dark); }
 
-    /* CAJA DE RESULTADOS */
     .result-card { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
     .result-card h3 { margin: 0 0 10px 0; font-size: 13px; color: #0369a1; text-transform: uppercase; }
     .url-display { width: 100%; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #334155; margin-bottom: 12px; }
@@ -56,18 +55,28 @@
     .btn-wsp { background: var(--wsp-color); color: white; }
     .btn-wsp:hover { background: #1eb954; }
 
-    /* HISTORIAL RECIENTE */
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
     th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; }
+
+    .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
+    .btn-pdf:hover { background: #0369a1; }
+
+    /* PLANTILLA OCULTA PARA COMPILAR EL PDF EN EL PANEL */
+    #pdfTemplate { display: none; padding: 25px; font-family: Arial, sans-serif; font-size: 11px; color: #222; line-height: 1.4; background: white; }
+    #pdfTemplate h1 { font-size: 15px; color: #004085; margin: 0; text-transform: uppercase; text-align: center; }
+    #pdfTemplate h2 { font-size: 11px; color: #444; margin: 3px 0 15px 0; text-align: center; }
+    #pdfTemplate .section-title { font-size: 11px; font-weight: bold; color: #004085; text-transform: uppercase; margin-top: 12px; margin-bottom: 5px; border-bottom: 1px solid #ddd; }
+    #pdfTemplate .grid { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    #pdfTemplate .grid td { padding: 5px; background: #f8f9fa; border: 1px solid #e9ecef; font-size: 10.5px; }
+    #pdfTemplate .audit-box { background: #eef2f7; border: 1.5px solid #004085; padding: 10px; margin-top: 15px; border-radius: 4px; }
   </style>
 </head>
 <body>
 
 <div class="dashboard-container">
   
-  <!-- ENCABEZADO PANEL -->
   <div class="top-bar">
     <div class="header-info">
       <img src="logo.png" alt="La Escuela del Inglés" class="logo-img">
@@ -79,7 +88,6 @@
     <span class="badge-status">🟢 Sistema Operativo</span>
   </div>
 
-  <!-- FORMULARIO DE REGISTRO -->
   <div class="card">
     <div class="card-title">📝 Datos para la Carta de Consentimiento</div>
     
@@ -129,7 +137,6 @@
       <button type="submit" class="btn-submit">⚡ Generar Enlace Único</button>
     </form>
 
-    <!-- RESULTADO GENERADO -->
     <div class="result-card" id="resultCard">
       <h3>Enlace Listo para Enviar al Cliente:</h3>
       <input type="text" class="url-display" id="finalUrl" readonly>
@@ -141,7 +148,6 @@
     </div>
   </div>
 
-  <!-- HISTORIAL DE LA SESIÓN -->
   <div class="card">
     <div class="card-title">📋 Enlaces Generados en esta Sesión</div>
     <div class="table-container">
@@ -152,7 +158,7 @@
             <th>Estudiante</th>
             <th>Correo</th>
             <th>Asesor</th>
-            <th>Acción</th>
+            <th>Acciones Administrativas</th>
           </tr>
         </thead>
         <tbody id="historyTable">
@@ -164,9 +170,60 @@
 
 </div>
 
+<!-- PLANTILLA OCULTA PARA DESCARGAR EL PDF DESDE EL PANEL -->
+<div id="pdfTemplate">
+  <div style="text-align: center; margin-bottom: 10px;">
+    <img src="logo.png" style="max-width: 180px; height: auto;">
+  </div>
+  <h1>ACUERDO DE RESERVA Y ACTIVACIÓN DE BENEFICIO EDUCATIVO</h1>
+  <h2>LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP</h2>
+
+  <p>Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación[cite: 1].</p>
+
+  <div class="section-title">1. DATOS DEL BENEFICIARIO[cite: 1]</div>
+  <table class="grid">
+    <tr><td><strong>Nombre:</strong> <span id="pdfNombre">-</span>[cite: 1]</td><td><strong>Teléfono:</strong> <span id="pdfTelefono">-</span>[cite: 1]</td></tr>
+    <tr><td><strong>Correo:</strong> <span id="pdfEmail">-</span>[cite: 1]</td><td><strong>Dirección:</strong> <span id="pdfDireccion">-</span>[cite: 1]</td></tr>
+  </table>
+
+  <div class="section-title">2. BENEFICIO OTORGADO[cite: 1]</div>
+  <p>El beneficiario ha sido seleccionado para participar en el programa de becas “Latinos Bilingües”, mediante el cual recibe una cobertura económica equivalente al 90% del costo total del programa educativo durante 12 meses, de acuerdo con las condiciones informadas[cite: 1].</p>
+  <table class="grid">
+    <tr><td><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="pdfValor">-</span>[cite: 1]</td></tr>
+  </table>
+
+  <div class="section-title">3. RESERVA Y COMPROMISO[cite: 1]</div>
+  <p>El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción[cite: 1].</p>
+  <table class="grid">
+    <tr><td><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span>[cite: 1]</td></tr>
+  </table>
+
+  <div class="section-title">4. COMPROMISOS DE LA ESCUELA[cite: 1]</div>
+  <ul>
+    <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo[cite: 1].</li>
+    <li>Respetar el beneficio y el valor de inscripción aquí establecidos[cite: 1].</li>
+    <li>Proporcionar al beneficiario la información y los medios necesarios para completar su inscripción[cite: 1].</li>
+    <li>Proceder con la activación del programa una vez cumplidas las condiciones de inscripción[cite: 1].</li>
+  </ul>
+
+  <div class="section-title">5. ACEPTACIÓN[cite: 1]</div>
+  <p>El beneficiario declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación[cite: 1]. asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción[cite: 1].</p>
+
+  <table class="grid" style="margin-top: 10px;">
+    <tr><td><strong>Representante:</strong> <span id="pdfRepresentante">-</span>[cite: 1]</td><td><strong>Código:</strong> <span id="pdfCodigo">-</span>[cite: 1]</td></tr>
+  </table>
+
+  <div class="audit-box">
+    <div style="font-weight: bold; color: #004085; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">🔒 REGISTRO OFICIAL DE AUDITORÍA Y ACEPTACIÓN DIGITAL</div>
+    <p style="margin: 2px 0;"><strong>Declaración del estudiante:</strong> "YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía."[cite: 1]</p>
+    <p style="margin: 2px 0;"><strong>Código de Registro:</strong> <span id="pdfAuditCodigo">-</span></p>
+    <p style="margin: 2px 0;"><strong>Estado de Aceptación:</strong> REGISTRADO Y CONFIRMADO</p>
+  </div>
+</div>
+
 <script>
-  // DIRECCIÓN OFICIAL DE TU PROYECTO EN GITHUB PAGES
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
+  const registrosSesion = {};
 
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -180,30 +237,22 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value;
 
-    // Formatear la URL con la sintaxis de parámetros exacta
+    // Guardar datos en la sesión local para generar el PDF administrativo
+    registrosSesion[codigoEstudiante] = { nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante };
+
     const params = new URLSearchParams({
-      nombre,
-      telefono,
-      email,
-      direccion,
-      valorInscripcion,
-      fechaPago,
-      representante,
-      codigoEstudiante
+      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante
     });
 
     const generatedLink = `${BASE_URL}?${params.toString()}`;
 
-    // Mostrar el enlace en pantalla
     document.getElementById('finalUrl').value = generatedLink;
     document.getElementById('resultCard').style.display = 'block';
 
-    // Generar el mensaje directo de WhatsApp
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
     const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
-    // Añadir el registro a la tabla de historial
     agregarAlHistorial(codigoEstudiante, nombre, email, representante, generatedLink);
   });
 
@@ -226,10 +275,45 @@
       <td>${nombre}</td>
       <td>${email}</td>
       <td>${asesor}</td>
-      <td><button onclick="window.open('${link}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:600;">Abrir ↗</button></td>
+      <td style="display: flex; gap: 6px;">
+        <button onclick="window.open('${link}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; font-size:11.5px;">Abrir ↗</button>
+        <button onclick="descargarPDFAdministrativo('${codigo}')" class="btn-pdf">📄 Descargar PDF</button>
+      </td>
     `;
 
     table.insertBefore(row, table.firstChild);
+  }
+
+  function descargarPDFAdministrativo(codigo) {
+    const data = registrosSesion[codigo];
+    if (!data) return alert("Datos del registro no encontrados.");
+
+    // Cargar datos en la plantilla oculta
+    document.getElementById('pdfNombre').innerText = data.nombre;
+    document.getElementById('pdfTelefono').innerText = data.telefono;
+    document.getElementById('pdfEmail').innerText = data.email;
+    document.getElementById('pdfDireccion').innerText = data.direccion;
+    document.getElementById('pdfValor').innerText = data.valorInscripcion;
+    document.getElementById('pdfFechaPago').innerText = data.fechaPago;
+    document.getElementById('pdfRepresentante').innerText = data.representante;
+    document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
+    document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
+
+    // Mostrar temporalmente para compilar
+    const template = document.getElementById('pdfTemplate');
+    template.style.display = "block";
+
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `Constancia_Acuerdo_${data.codigoEstudiante}_${data.nombre.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(template).save().then(() => {
+      template.style.display = "none";
+    });
   }
 </script>
 
