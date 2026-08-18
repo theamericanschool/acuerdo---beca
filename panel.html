@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Asesores - La Escuela del Inglés</title>
+  <style>
+    :root {
+      --primary: #004085;
+      --primary-dark: #002b5c;
+      --secondary: #198754;
+      --wsp-color: #25d366;
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --border-color: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+    
+    .dashboard-container { max-width: 900px; margin: 0 auto; }
+    
+    /* ENCABEZADO CON LOGO */
+    .top-bar { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .header-info { display: flex; align-items: center; gap: 15px; }
+    .logo-img { height: 48px; width: auto; object-fit: contain; }
+    .top-bar h1 { margin: 0; font-size: 18px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .top-bar p { margin: 3px 0 0 0; font-size: 12px; color: #64748b; }
+    .badge-status { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+    /* TARJETA DEL FORMULARIO */
+    .card { background: var(--card-bg); padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    
+    label { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; }
+    input, select { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13.5px; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+    input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(0, 64, 133, 0.1); }
+
+    .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 15px; }
+    .btn-submit:hover { background: var(--primary-dark); }
+
+    /* CAJA DE RESULTADOS */
+    .result-card { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
+    .result-card h3 { margin: 0 0 10px 0; font-size: 13px; color: #0369a1; text-transform: uppercase; }
+    .url-display { width: 100%; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #334155; margin-bottom: 12px; }
+    
+    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-action { flex: 1; padding: 10px 15px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; min-width: 160px; }
+    .btn-copy { background: var(--secondary); color: white; }
+    .btn-copy:hover { background: #146c43; }
+    .btn-wsp { background: var(--wsp-color); color: white; }
+    .btn-wsp:hover { background: #1eb954; }
+
+    /* HISTORIAL RECIENTE */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
+    th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+  
+  <!-- ENCABEZADO PANEL -->
+  <div class="top-bar">
+    <div class="header-info">
+      <img src="logo.png" alt="La Escuela del Inglés" class="logo-img">
+      <div>
+        <h1>Generador de Acuerdos</h1>
+        <p>La Escuela Americana del Inglés / American Book Group</p>
+      </div>
+    </div>
+    <span class="badge-status">🟢 Sistema Operativo</span>
+  </div>
+
+  <!-- FORMULARIO DE REGISTRO -->
+  <div class="card">
+    <div class="card-title">📝 Datos para la Carta de Consentimiento</div>
+    
+    <form id="generatorForm">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Nombre Completo del Estudiante:</label>
+          <input type="text" id="nombre" placeholder="Ej. Nombre" required>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono (WhatsApp con código):</label>
+          <input type="text" id="telefono" placeholder="Ej. +100000000" required>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico:</label>
+          <input type="email" id="email" placeholder="ejemplo@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>Dirección:</label>
+          <input type="text" id="direccion" placeholder="Ej. Direccion" required>
+        </div>
+
+        <div class="form-group">
+          <label>Valor Inscripción:</label>
+          <input type="text" id="valorInscripcion" value="259 USD" required>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha Compromiso de Pago:</label>
+          <input type="date" id="fechaPago" value="0000-00-00" required>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del Asesor (Representante):</label>
+          <input type="text" id="representante" placeholder="Ej. Asesor" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">⚡ Generar Enlace Único</button>
+    </form>
+
+    <!-- RESULTADO GENERADO -->
+    <div class="result-card" id="resultCard">
+      <h3>Enlace Listo para Enviar al Cliente:</h3>
+      <input type="text" class="url-display" id="finalUrl" readonly>
+      
+      <div class="action-buttons">
+        <button class="btn-action btn-copy" onclick="copiarLink()">📋 Copiar Enlace</button>
+        <a href="#" target="_blank" class="btn-action btn-wsp" id="wspLink">💬 Enviar por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL DE LA SESIÓN -->
+  <div class="card">
+    <div class="card-title">📋 Enlaces Generados en esta Sesión</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Estudiante</th>
+            <th>Correo</th>
+            <th>Asesor</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable">
+          <tr id="emptyRow"><td colspan="5" style="text-align: center; color: #94a3b8;">No se han generado enlaces en esta sesión.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // DIRECCIÓN OFICIAL DE TU PROYECTO EN GITHUB PAGES
+  const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
+
+  document.getElementById('generatorForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById('nombre').value;
+    const telefono = document.getElementById('telefono').value;
+    const email = document.getElementById('email').value;
+    const direccion = document.getElementById('direccion').value;
+    const valorInscripcion = document.getElementById('valorInscripcion').value;
+    const fechaPago = document.getElementById('fechaPago').value;
+    const representante = document.getElementById('representante').value;
+    
+    // Generación de código con el formato institucional ABG-
+    const codigoEstudiante = "ABG-" + Math.floor(1000 + Math.random() * 9000);
+
+    // Formatear la URL con la sintaxis de parámetros exacta
+    const params = new URLSearchParams({
+      nombre,
+      telefono,
+      email,
+      direccion,
+      valorInscripcion,
+      fechaPago,
+      representante,
+      codigoEstudiante
+    });
+
+    const generatedLink = `${BASE_URL}?${params.toString()}`;
+
+    // Mostrar el enlace en pantalla
+    document.getElementById('finalUrl').value = generatedLink;
+    document.getElementById('resultCard').style.display = 'block';
+
+    // Generar el mensaje directo de WhatsApp
+    const cleanPhone = telefono.replace(/[^0-9]/g, '');
+    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
+    document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
+
+    // Añadir el registro a la tabla de historial
+    agregarAlHistorial(codigoEstudiante, nombre, email, representante, generatedLink);
+  });
+
+  function copiarLink() {
+    const copyText = document.getElementById("finalUrl");
+    copyText.select();
+    document.execCommand("copy");
+    alert("¡Enlace copiado exitosamente al portapapeles!");
+  }
+
+  function agregarAlHistorial(codigo, nombre, email, asesor, link) {
+    const emptyRow = document.getElementById('emptyRow');
+    if (emptyRow) emptyRow.remove();
+
+    const table = document.getElementById('historyTable');
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td><strong>${codigo}</strong></td>
+      <td>${nombre}</td>
+      <td>${email}</td>
+      <td>${asesor}</td>
+      <td><button onclick="window.open('${link}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:600;">Abrir ↗</button></td>
+    `;
+
+    table.insertBefore(row, table.firstChild);
+  }
+</script>
+
+</body>
+</html>
