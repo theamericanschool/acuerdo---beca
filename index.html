@@ -85,10 +85,10 @@
 </div>
 
 <script>
-  // URL OFICIAL DE TU GOOGLE APPS SCRIPT
+  // URL de tu Web App en Google Apps Script
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
 
-  // Leer parámetros de la URL
+  // Parámetros de la URL
   const urlParams = new URLSearchParams(window.location.search);
   const getParam = (param, defaultText) => urlParams.get(param) || defaultText;
 
@@ -104,7 +104,7 @@
     codigoEstudiante: getParam('codigoEstudiante', 'EST-' + Math.floor(1000 + Math.random() * 9000))
   };
 
-  // Asignar a la pantalla
+  // Mostrar datos en pantalla
   document.getElementById('nombre').innerText = datosEstudiante.nombre;
   document.getElementById('telefono').innerText = datosEstudiante.telefono;
   document.getElementById('email').innerText = datosEstudiante.email || 'Sin correo registrado';
@@ -115,24 +115,30 @@
   document.getElementById('representante').innerText = datosEstudiante.representante;
   document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
 
-  // EVENTO 1: Notificar Lectura/Apertura al cargar
-  window.addEventListener('load', () => {
+  // Función para enviar datos a Google Apps Script usando navigator.sendBeacon o fetch directo
+  function enviarAGoogle(datos) {
+    const formBody = new URLSearchParams(datos).toString();
     fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        accion: "ABRIR",
-        codigoEstudiante: datosEstudiante.codigoEstudiante,
-        nombre: datosEstudiante.nombre,
-        email: datosEstudiante.email,
-        telefono: datosEstudiante.telefono,
-        representante: datosEstudiante.representante
-      })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody,
+      mode: 'no-cors'
+    });
+  }
+
+  // EVENTO 1: Registrar Lectura
+  window.addEventListener('load', () => {
+    enviarAGoogle({
+      accion: "ABRIR",
+      codigoEstudiante: datosEstudiante.codigoEstudiante,
+      nombre: datosEstudiante.nombre,
+      email: datosEstudiante.email,
+      telefono: datosEstudiante.telefono,
+      representante: datosEstudiante.representante
     });
   });
 
-  // EVENTO 2: Procesar la Firma
+  // EVENTO 2: Registrar Firma
   document.getElementById('signForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -146,31 +152,23 @@
       const ipData = await ipRes.json();
       userIp = ipData.ip;
     } catch (ipErr) {
-      console.log("No se pudo obtener IP pública");
+      console.log("No se pudo obtener IP");
     }
 
-    // Enviar datos usando tipo 'text/plain' para evitar bloqueos CORS con Google Apps Script
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        accion: "FIRMAR",
-        codigoEstudiante: datosEstudiante.codigoEstudiante,
-        nombre: datosEstudiante.nombre,
-        email: datosEstudiante.email,
-        ip: userIp
-      })
-    }).then(() => {
+    enviarAGoogle({
+      accion: "FIRMAR",
+      codigoEstudiante: datosEstudiante.codigoEstudiante,
+      nombre: datosEstudiante.nombre,
+      email: datosEstudiante.email,
+      ip: userIp
+    });
+
+    setTimeout(() => {
       alert("¡Acuerdo firmado con éxito!\n\nSe ha registrado tu firma electrónica junto con la IP: " + userIp);
       btn.innerText = "Acuerdo Firmado Exitosamente";
-    }).catch((error) => {
-      alert("Error al enviar la firma. Intenta de nuevo.");
-      btn.disabled = false;
-      btn.innerText = "Aceptar y Firmar Digitalmente";
-    });
+    }, 1000);
   });
 </script>
-
+  
 </body>
 </html>
