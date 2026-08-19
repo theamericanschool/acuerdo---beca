@@ -110,16 +110,41 @@
     document.getElementById('adminNotice').style.display = 'block';
   }
 
+  // FUNCIÓN PARA LIMPIAR CUALQUIER FORMATO DE FECHA A DD/MM/YYYY
+  function formatearFechaLimpia(fechaInput) {
+    if (!fechaInput) return "-";
+    let str = fechaInput.toString().trim();
+    
+    // Si la fecha viene en formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      let parts = str.split('T')[0].split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    // Remover texto de zona horaria o país
+    str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
+
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      let day = String(d.getDate()).padStart(2, '0');
+      let month = String(d.getMonth() + 1).padStart(2, '0');
+      let year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    return str.split('T')[0].split(' ')[0];
+  }
+
   const datosEstudiante = {
     nombre: getParam('nombre', 'Estudiante de Prueba'),
     telefono: getParam('telefono', '0000000000'),
     email: getParam('email', ''),
     direccion: getParam('direccion', 'No especificada'),
-    fechaAcuerdo: getParam('fechaAcuerdo', new Date().toLocaleDateString()),
-    valorInscripcion: getParam('valorInscripcion', '$50 USD'),
-    fechaPago: getParam('fechaPago', 'Por acordar'),
+    fechaAcuerdo: formatearFechaLimpia(getParam('fechaAcuerdo', new Date())),
+    valorInscripcion: getParam('valorInscripcion', '$ 259.00 USD'),
+    fechaPago: formatearFechaLimpia(getParam('fechaPago', '')),
     representante: getParam('representante', 'Asesor Educativo'),
-    codigoEstudiante: getParam('codigoEstudiante', 'ABG-' + Math.floor(1000 + Math.random() * 9000))
+    codigoEstudiante: getParam('codigoEstudiante', 'ABG-000000')
   };
 
   document.getElementById('nombre').innerText = datosEstudiante.nombre;
@@ -133,7 +158,6 @@
   document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
 
   function enviarAGoogle(datos) {
-    // SI ES MODO ADMINISTRATIVO, IGNORAR ENVÍO
     if (isAdminView) return;
 
     const formBody = new URLSearchParams(datos).toString();
@@ -145,7 +169,6 @@
     });
   }
 
-  // SOLO REGISTRAR APERTURA SI VIENE DE UN CLIENTE REAL
   window.addEventListener('load', () => {
     if (!isAdminView) {
       enviarAGoogle({ ...datosEstudiante, accion: "ABRIR" });
