@@ -188,9 +188,9 @@
   <div class="card">
     <div class="card-title">📋 Base de Datos de Acuerdos (Nube)</div>
     
-    <!-- BUSCADOR EXCLUSIVO POR CÓDIGO CRM -->
+    <!-- BUSCADOR POR CÓDIGO CRM -->
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="🔍 Buscar únicamente por Código de Estudiante (ej. ABG-112233)..." onkeyup="filtrarPorCodigoCRM()">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar por Código CRM (ej. ABG-112233 ó 112233)..." oninput="filtrarPorCodigoCRM()">
       <button onclick="cargarHistorialDesdeNube()" style="background:#004085; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Actualizar Nube</button>
     </div>
 
@@ -212,7 +212,6 @@
       </table>
     </div>
 
-    <!-- NAVEGACIÓN Y PAGINACIÓN DE 20 REGISTROS -->
     <div class="pagination-container">
       <span id="pageInfo">Mostrando 0-0 de 0 registros</span>
       <div class="pagination-buttons">
@@ -285,7 +284,7 @@
     <div class="highlight-item">✔ <strong>Código CRM Registrado:</strong> <span id="pdfAuditCodigo" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Fecha y Hora de Firma:</strong> <span id="pdfAuditFecha" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Dirección IP de Registro:</strong> <span id="pdfAuditIp" style="font-weight: bold;">-</span></div>
-    <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía."</div>
+    <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y conditions establecidas por la compañía."</div>
     <div class="highlight-item">✔ <strong>Estatus Legal:</strong> FIRMADO Y CONFIRMADO VÍA PLATAFORMA DIGITAL</div>
   </div>
 </div>
@@ -324,12 +323,9 @@
       const data = await response.json();
       
       registrosBaseDatos = Array.isArray(data) ? data : [];
-      registrosFiltrados = [...registrosBaseDatos].reverse();
-      paginaActual = 1;
-      
-      renderizarTabla();
+      filtrarPorCodigoCRM();
     } catch (e) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error al conectar con Google Sheets.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets. Verifica la implementación en Apps Script.</td></tr>';
     }
   }
 
@@ -339,7 +335,7 @@
 
     if (!registrosFiltrados || registrosFiltrados.length === 0) {
       tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No se encontraron acuerdos registrados.</td></tr>';
-      actualizarControlesPaginacion(0);
+      actualizarControlesPaginacion(0, 0, 0);
       return;
     }
 
@@ -409,58 +405,45 @@
     renderizarTabla();
   }
 
-  // BÚSQUEDA EXCLUSIVA POR CÓDIGO CRM
+  // FILTRO INTELIGENTE POR CÓDIGO CRM
   function filtrarPorCodigoCRM() {
-    const query = document.getElementById('searchInput').value.toUpperCase().trim();
-    
-    registrosFiltrados = [...registrosBaseDatos].reverse().filter(item => {
-      const crm = (item.codigoEstudiante || "").toUpperCase();
-      return crm.includes(query);
-    });
+    const rawQuery = document.getElementById('searchInput').value.toUpperCase().trim();
+    const cleanDigits = rawQuery.replace(/[^0-9]/g, '');
+
+    if (!rawQuery) {
+      registrosFiltrados = [...registrosBaseDatos].reverse();
+    } else {
+      registrosFiltrados = [...registrosBaseDatos].reverse().filter(item => {
+        const crm = (item.codigoEstudiante || "").toUpperCase();
+        const crmDigits = crm.replace(/[^0-9]/g, '');
+        return crm.includes(rawQuery) || (cleanDigits !== "" && crmDigits.includes(cleanDigits));
+      });
+    }
 
     paginaActual = 1;
     renderizarTabla();
   }
 
-  // GENERACIÓN DE ENLACE Y REGISTRO
+  // GENERACIÓN DIRECTA DE ENLACE E INTEGRACIÓN CON LA NUBE
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim().toUpperCase();
 
-    const crmRegex = /^ABG-\d{6}$/;
-    if (!crmRegex.test(codigoEstudiante)) {
-      alert("⚠️ FORMATO INVÁLIDO:\n\nEl Código de Estudiante debe tener las siglas ABG- seguidas de exactamente 6 dígitos numéricos (ejemplo: ABG-112233).");
-      return;
-    }
-
-    const telefono = document.getElementById('telefono').value.trim();
-
-    const existeCodigo = registrosBaseDatos.some(i => (i.codigoEstudiante || "").toUpperCase() === codigoEstudiante);
-    if (existeCodigo) {
-      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl Código CRM '" + codigoEstudiante + "' ya se encuentra registrado.");
+    if (codigoEstudiante.length !== 10 || !codigoEstudiante.startsWith("ABG-")) {
+      alert("⚠️ CÓDIGO INCOMPLETO:\n\nEl Código CRM debe tener exactamente la estructura ABG- seguida de 6 dígitos numéricos (Ejemplo: ABG-112233).");
       return;
     }
 
     const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+    const telefono = document.getElementById('telefono').value.trim();
     const email = document.getElementById('email').value.trim().toLowerCase();
     const direccion = document.getElementById('direccion').value.trim().toUpperCase();
     const valorInscripcion = document.getElementById('valorInscripcion').value.trim().toUpperCase();
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    const datosGuardar = {
-      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
-    };
-
-    const formBody = new URLSearchParams(datosGuardar).toString();
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formBody,
-      mode: 'no-cors'
-    });
-
+    // 1. GENERAR Y MOSTRAR ENLACE DE INMEDIATO
     const params = new URLSearchParams({
       nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante
     });
@@ -474,9 +457,19 @@
     const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
-    setTimeout(() => {
-      cargarHistorialDesdeNube();
-    }, 1200);
+    // 2. ACTUALIZAR GOOGLE SHEETS EN SEGUNDO PLANO
+    const datosGuardar = {
+      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
+    };
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(datosGuardar).toString(),
+      mode: 'no-cors'
+    }).then(() => {
+      setTimeout(cargarHistorialDesdeNube, 1200);
+    }).catch(() => {});
   });
 
   function limpiarFormulario() {
