@@ -43,7 +43,7 @@
     .lowercase-input { text-transform: lowercase; }
 
     .search-box { display: flex; gap: 10px; margin-bottom: 15px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
-    .search-box input { flex: 1; background: white; font-size: 13px; }
+    .search-box input { flex: 1; background: white; font-size: 13px; text-transform: uppercase; }
 
     .button-group-form { display: flex; gap: 10px; margin-top: 15px; }
     .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background 0.2s; flex: 2; }
@@ -70,6 +70,11 @@
 
     .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
     .btn-pdf:hover { background: #0369a1; }
+
+    .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+    .status-creado { background: #e2e8f0; color: #475569; }
+    .status-abierto { background: #dbeafe; color: #1e40af; }
+    .status-firmado { background: #dcfce7; color: #166534; }
 
     #pdfTemplate { 
       display: none; 
@@ -127,7 +132,7 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Código de Estudiante (CRM):</label>
-          <input type="text" id="codigoEstudiante" class="uppercase-input" placeholder="Ej. ABG-4582" required oninput="this.value = this.value.toUpperCase()">
+          <input type="text" id="codigoEstudiante" class="uppercase-input" value="ABG-" maxlength="10" placeholder="ABG-123456" required oninput="formatCodigoCRM(this)">
         </div>
         <div class="form-group">
           <label>Nombre Completo del Estudiante:</label>
@@ -178,10 +183,10 @@
   <div class="card">
     <div class="card-title">📋 Base de Datos de Acuerdos (Nube)</div>
     
-    <!-- BUSCADOR CON FILTRO EN TIEMPO REAL -->
+    <!-- BUSCADOR EXCLUSIVO POR CÓDIGO CRM -->
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="🔍 Buscar por Nombre, Teléfono o Código CRM..." onkeyup="filtrarTabla()">
-      <button onclick="cargarHistorialDesdeNube()" style="background:#004085; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Actualizar</button>
+      <input type="text" id="searchInput" placeholder="🔍 Buscar únicamente por Código de Estudiante (ej. ABG-112233)..." onkeyup="filtrarPorCodigoCRM()">
+      <button onclick="cargarHistorialDesdeNube()" style="background:#004085; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Actualizar Nube</button>
     </div>
 
     <div class="table-container">
@@ -191,7 +196,7 @@
             <th>Código CRM</th>
             <th>Estudiante</th>
             <th>Teléfono</th>
-            <th>Correo</th>
+            <th>Estatus</th>
             <th>Asesor</th>
             <th>Acciones</th>
           </tr>
@@ -276,11 +281,23 @@
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
   let registrosBaseDatos = [];
 
+  // FORZAR FORMATO ABG- Y EXACTAMENTE 6 DÍGITOS
+  function formatCodigoCRM(input) {
+    let val = input.value.toUpperCase();
+    if (!val.startsWith("ABG-")) {
+      val = "ABG-";
+    }
+    let digits = val.substring(4).replace(/[^0-9]/g, '');
+    if (digits.length > 6) {
+      digits = digits.substring(0, 6);
+    }
+    input.value = "ABG-" + digits;
+  }
+
   window.addEventListener('load', () => {
     cargarHistorialDesdeNube();
   });
 
-  // CONSULTAR REGISTROS DESDE GOOGLE SHEETS
   async function cargarHistorialDesdeNube() {
     const tableBody = document.getElementById('historyTable');
     tableBody.innerHTML = '<tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>';
@@ -290,7 +307,7 @@
       registrosBaseDatos = await response.json();
       renderizarTabla(registrosBaseDatos);
     } catch (e) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error al conectar con Google Sheets. Revisa la implementación del script.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error al conectar con Google Sheets.</td></tr>';
     }
   }
 
@@ -299,11 +316,10 @@
     tableBody.innerHTML = "";
 
     if (!datos || datos.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No hay registros de acuerdos almacenados en la nube.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No se encontraron acuerdos registrados en la nube.</td></tr>';
       return;
     }
 
-    // Renderizar ordenando por el más reciente
     [...datos].reverse().forEach(item => {
       const params = new URLSearchParams({
         nombre: item.nombre, telefono: item.telefono, email: item.email,
@@ -314,12 +330,18 @@
       const generatedLink = `${BASE_URL}?${params.toString()}`;
       const previewLink = generatedLink + "&modo=admin";
 
+      let estatusCss = "status-creado";
+      let estatusTexto = item.estatus || "CREADO";
+
+      if (estatusTexto === "ABIERTO") estatusCss = "status-abierto";
+      if (estatusTexto === "FIRMADO") estatusCss = "status-firmado";
+
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><strong>${item.codigoEstudiante}</strong></td>
         <td>${item.nombre}</td>
         <td>${item.telefono}</td>
-        <td>${item.email}</td>
+        <td><span class="status-badge ${estatusCss}">${estatusTexto}</span></td>
         <td>${item.representante}</td>
         <td style="display: flex; gap: 6px;">
           <button onclick="window.open('${previewLink}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; font-size:11.5px;">👁️ Vista Previa</button>
@@ -330,36 +352,35 @@
     });
   }
 
-  // BUSCADOR CON FILTRO DINÁMICO
-  function filtrarTabla() {
-    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  // BÚSQUEDA EXCLUSIVA POR CÓDIGO CRM
+  function filtrarPorCodigoCRM() {
+    const query = document.getElementById('searchInput').value.toUpperCase().trim();
     const filtrados = registrosBaseDatos.filter(item => {
-      const crm = (item.codigoEstudiante || "").toLowerCase();
-      const nom = (item.nombre || "").toLowerCase();
-      const tel = (item.telefono || "").toLowerCase();
-      return crm.includes(query) || nom.includes(query) || tel.includes(query);
+      const crm = (item.codigoEstudiante || "").toUpperCase();
+      return crm.includes(query);
     });
     renderizarTabla(filtrados);
   }
 
-  // ENVÍO DE NUEVO ACUERDO
+  // ENVÍO Y VALIDACIÓN DEL FORMULARIO
   document.getElementById('generatorForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim().toUpperCase();
-    const telefono = document.getElementById('telefono').value.trim();
-    const cleanPhone = telefono.replace(/[^0-9]/g, '');
 
-    // VALIDAR DUPLICADO EN LA NUBE
-    const existeCodigo = registrosBaseDatos.some(i => i.codigoEstudiante.toUpperCase() === codigoEstudiante);
-    if (existeCodigo) {
-      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl Código CRM '" + codigoEstudiante + "' ya se encuentra registrado. Usa un código único.");
+    // Validar formato estricto ABG-XXXXXX (6 dígitos)
+    const crmRegex = /^ABG-\d{6}$/;
+    if (!crmRegex.test(codigoEstudiante)) {
+      alert("⚠️ FORMATO INVÁLIDO:\n\nEl Código de Estudiante debe tener las siglas ABG- seguidas de exactamente 6 dígitos numéricos (ejemplo: ABG-112233).");
       return;
     }
 
-    const existeTel = registrosBaseDatos.some(i => i.telefono.replace(/[^0-9]/g, '') === cleanPhone);
-    if (existeTel) {
-      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl teléfono '" + telefono + "' ya está asociado a otro registro.");
+    const telefono = document.getElementById('telefono').value.trim();
+    const cleanPhone = telefono.replace(/[^0-9]/g, '');
+
+    const existeCodigo = registrosBaseDatos.some(i => (i.codigoEstudiante || "").toUpperCase() === codigoEstudiante);
+    if (existeCodigo) {
+      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl Código CRM '" + codigoEstudiante + "' ya se encuentra registrado.");
       return;
     }
 
@@ -374,7 +395,6 @@
       nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
     };
 
-    // GUARDAR EN GOOGLE SHEETS
     const formBody = new URLSearchParams(datosGuardar).toString();
     fetch(SCRIPT_URL, {
       method: 'POST',
@@ -403,6 +423,7 @@
   function limpiarFormulario() {
     document.getElementById('generatorForm').reset();
     document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('codigoEstudiante').value = 'ABG-';
     document.getElementById('valorInscripcion').value = '259USD';
     document.getElementById('fechaPago').value = '2026-08-25';
   }
@@ -415,14 +436,14 @@
   }
 
   function descargarPDFAdministrativo(codigo) {
-    const data = registrosBaseDatos.find(i => i.codigoEstudiante.toUpperCase() === codigo.toUpperCase());
+    const data = registrosBaseDatos.find(i => (i.codigoEstudiante || "").toUpperCase() === codigo.toUpperCase());
     if (!data) return alert("Registro no encontrado.");
 
     document.getElementById('pdfNombre').innerText = data.nombre;
     document.getElementById('pdfTelefono').innerText = data.telefono;
     document.getElementById('pdfEmail').innerText = data.email;
     document.getElementById('pdfDireccion').innerText = data.direccion;
-    document.getElementById('pdfFechaAcuerdo').innerText = new Date(data.fechaRegistro).toLocaleDateString() || new Date().toLocaleDateString();
+    document.getElementById('pdfFechaAcuerdo').innerText = data.fechaRegistro ? new Date(data.fechaRegistro).toLocaleDateString() : new Date().toLocaleDateString();
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
     document.getElementById('pdfFechaPago').innerText = data.fechaPago;
     document.getElementById('pdfRepresentante').innerText = data.representante;
