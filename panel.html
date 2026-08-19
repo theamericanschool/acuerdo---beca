@@ -65,7 +65,6 @@
     .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
     .btn-pdf:hover { background: #0369a1; }
 
-    /* ESTILOS DEL PDF LÍMPIOS Y SIN CORTES */
     #pdfTemplate { 
       display: none; 
       width: 700px; 
@@ -261,13 +260,37 @@
 <script>
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
   const registrosSesion = {};
+  let userIpGlobal = "Detectada en Servidor";
+
+  // OBTENER LA IP DEL ASESOR / ESTUDIANTE AL CARGAR
+  window.addEventListener('load', async () => {
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      userIpGlobal = data.ip;
+    } catch (e) {}
+  });
 
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+
+    // PREVENIR DUPLICADOS DE CÓDIGO O TELÉFONO EN LA MISMA SESIÓN
+    if (registrosSesion[codigoEstudiante]) {
+      alert("⚠️ Error: El Código de Estudiante (CRM) '" + codigoEstudiante + "' ya fue registrado anteriormente en esta sesión. Por favor usa un código único.");
+      return;
+    }
+
+    for (let key in registrosSesion) {
+      if (registrosSesion[key].telefono === telefono) {
+        alert("⚠️ Error: El número de teléfono '" + telefono + "' ya está asociado al código " + key + ". Por favor verifica los datos.");
+        return;
+      }
+    }
+
     const nombre = document.getElementById('nombre').value;
-    const telefono = document.getElementById('telefono').value;
     const email = document.getElementById('email').value;
     const direccion = document.getElementById('direccion').value;
     const valorInscripcion = document.getElementById('valorInscripcion').value;
@@ -343,7 +366,9 @@
     document.getElementById('pdfAuditNombre').innerText = data.nombre;
     document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
     document.getElementById('pdfAuditFecha').innerText = new Date().toLocaleString('es-ES');
-    document.getElementById('pdfAuditIp').innerText = "Verificable en Google Sheets";
+    
+    // MOSTRAR IP DETECTADA DE FORMA VISIBLE
+    document.getElementById('pdfAuditIp').innerText = userIpGlobal;
 
     const template = document.getElementById('pdfTemplate');
     template.style.display = "block";
