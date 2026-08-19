@@ -68,6 +68,11 @@
     th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); }
     th { background: #f8fafc; color: #64748b; font-size: 11px; text-transform: uppercase; }
 
+    .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 12px; color: #64748b; }
+    .pagination-buttons { display: flex; gap: 8px; }
+    .btn-page { background: #e2e8f0; color: #1e293b; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+    .btn-page:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
     .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
     .btn-pdf:hover { background: #0369a1; }
 
@@ -206,6 +211,15 @@
         </tbody>
       </table>
     </div>
+
+    <!-- NAVEGACIÓN Y PAGINACIÓN DE 20 REGISTROS -->
+    <div class="pagination-container">
+      <span id="pageInfo">Mostrando 0-0 de 0 registros</span>
+      <div class="pagination-buttons">
+        <button id="btnPrev" class="btn-page" onclick="cambiarPagina(-1)" disabled>◀ Anterior</button>
+        <button id="btnNext" class="btn-page" onclick="cambiarPagina(1)" disabled>Siguiente ▶</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -279,9 +293,12 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
+  
   let registrosBaseDatos = [];
+  let registrosFiltrados = [];
+  let paginaActual = 1;
+  const registrosPorPagina = 20;
 
-  // FORZAR FORMATO ABG- Y EXACTAMENTE 6 DÍGITOS
   function formatCodigoCRM(input) {
     let val = input.value.toUpperCase();
     if (!val.startsWith("ABG-")) {
@@ -304,27 +321,43 @@
 
     try {
       const response = await fetch(SCRIPT_URL);
-      registrosBaseDatos = await response.json();
-      renderizarTabla(registrosBaseDatos);
+      const data = await response.json();
+      
+      registrosBaseDatos = Array.isArray(data) ? data : [];
+      registrosFiltrados = [...registrosBaseDatos].reverse();
+      paginaActual = 1;
+      
+      renderizarTabla();
     } catch (e) {
       tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error al conectar con Google Sheets.</td></tr>';
     }
   }
 
-  function renderizarTabla(datos) {
+  function renderizarTabla() {
     const tableBody = document.getElementById('historyTable');
     tableBody.innerHTML = "";
 
-    if (!datos || datos.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No se encontraron acuerdos registrados en la nube.</td></tr>';
+    if (!registrosFiltrados || registrosFiltrados.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No se encontraron acuerdos registrados.</td></tr>';
+      actualizarControlesPaginacion(0);
       return;
     }
 
-    [...datos].reverse().forEach(item => {
+    const totalRegistros = registrosFiltrados.length;
+    const inicio = (paginaActual - 1) * registrosPorPagina;
+    const fin = Math.min(inicio + registrosPorPagina, totalRegistros);
+    const paginados = registrosFiltrados.slice(inicio, fin);
+
+    paginados.forEach(item => {
       const params = new URLSearchParams({
-        nombre: item.nombre, telefono: item.telefono, email: item.email,
-        direccion: item.direccion, valorInscripcion: item.valorInscripcion,
-        fechaPago: item.fechaPago, representante: item.representante, codigoEstudiante: item.codigoEstudiante
+        nombre: item.nombre || "", 
+        telefono: item.telefono || "", 
+        email: item.email || "",
+        direccion: item.direccion || "", 
+        valorInscripcion: item.valorInscripcion || "",
+        fechaPago: item.fechaPago || "", 
+        representante: item.representante || "", 
+        codigoEstudiante: item.codigoEstudiante || ""
       });
 
       const generatedLink = `${BASE_URL}?${params.toString()}`;
@@ -350,25 +383,51 @@
       `;
       tableBody.appendChild(row);
     });
+
+    actualizarControlesPaginacion(totalRegistros, inicio + 1, fin);
+  }
+
+  function actualizarControlesPaginacion(total, desde, hasta) {
+    const pageInfo = document.getElementById('pageInfo');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    if (total === 0) {
+      pageInfo.innerText = "Mostrando 0-0 de 0 registros";
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+      return;
+    }
+
+    pageInfo.innerText = `Mostrando ${desde}-${hasta} de ${total} registros`;
+    btnPrev.disabled = paginaActual === 1;
+    btnNext.disabled = (paginaActual * registrosPorPagina) >= total;
+  }
+
+  function cambiarPagina(direccion) {
+    paginaActual += direccion;
+    renderizarTabla();
   }
 
   // BÚSQUEDA EXCLUSIVA POR CÓDIGO CRM
   function filtrarPorCodigoCRM() {
     const query = document.getElementById('searchInput').value.toUpperCase().trim();
-    const filtrados = registrosBaseDatos.filter(item => {
+    
+    registrosFiltrados = [...registrosBaseDatos].reverse().filter(item => {
       const crm = (item.codigoEstudiante || "").toUpperCase();
       return crm.includes(query);
     });
-    renderizarTabla(filtrados);
+
+    paginaActual = 1;
+    renderizarTabla();
   }
 
-  // ENVÍO Y VALIDACIÓN DEL FORMULARIO
-  document.getElementById('generatorForm').addEventListener('submit', async (e) => {
+  // GENERACIÓN DE ENLACE Y REGISTRO
+  document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim().toUpperCase();
 
-    // Validar formato estricto ABG-XXXXXX (6 dígitos)
     const crmRegex = /^ABG-\d{6}$/;
     if (!crmRegex.test(codigoEstudiante)) {
       alert("⚠️ FORMATO INVÁLIDO:\n\nEl Código de Estudiante debe tener las siglas ABG- seguidas de exactamente 6 dígitos numéricos (ejemplo: ABG-112233).");
@@ -376,7 +435,6 @@
     }
 
     const telefono = document.getElementById('telefono').value.trim();
-    const cleanPhone = telefono.replace(/[^0-9]/g, '');
 
     const existeCodigo = registrosBaseDatos.some(i => (i.codigoEstudiante || "").toUpperCase() === codigoEstudiante);
     if (existeCodigo) {
@@ -412,12 +470,13 @@
     document.getElementById('finalUrl').value = generatedLink;
     document.getElementById('resultCard').style.display = 'block';
 
+    const cleanPhone = telefono.replace(/[^0-9]/g, '');
     const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
     setTimeout(() => {
       cargarHistorialDesdeNube();
-    }, 1500);
+    }, 1200);
   });
 
   function limpiarFormulario() {
