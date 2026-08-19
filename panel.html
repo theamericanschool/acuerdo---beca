@@ -194,7 +194,7 @@
 
 </div>
 
-<!-- TEMPLATE PDF (NO LLEVA CITES) -->
+<!-- TEMPLATE PDF DENTRO DEL PANEL -->
 <div id="pdfTemplate">
   <div class="pdf-header">
     <img src="logo.png" class="pdf-logo"><br>
@@ -330,7 +330,7 @@
     table.insertBefore(row, table.firstChild);
   }
 
-  // FUNCIÓN PARA OBTENER LA IP REAL DE GOOGLE SHEETS
+  // FUNCIÓN PARA OBTENER LA IP Y FECHA REAL DESDE GOOGLE SHEETS
   async function descargarPDFAdministrativo(codigo, btnElement) {
     const data = registrosSesion[codigo];
     if (!data) return alert("Datos del registro no encontrados.");
@@ -340,18 +340,18 @@
     btnElement.disabled = true;
 
     try {
-      // 1. Preguntarle a Google Sheets si el cliente ya firmó
+      // 1. Consultar a Google Sheets el estado de la firma
       const response = await fetch(SCRIPT_URL + "?codigo=" + codigo);
       const result = await response.json();
 
       if (result.estatus !== "FIRMADO") {
-        alert("⚠️ El estudiante aún no ha firmado este acuerdo. Debes esperar a que el cliente complete el proceso para generar la constancia.");
+        alert("⚠️ El estudiante aún no ha firmado este acuerdo. Espera a que el cliente complete el proceso para descargar la constancia.");
         btnElement.innerText = textoOriginal;
         btnElement.disabled = false;
         return;
       }
 
-      // 2. Si ya firmó, llenamos los datos con la IP y Fecha REAL de la base de datos
+      // 2. Llenar plantilla con datos y la IP + Fecha de Google Sheets
       document.getElementById('pdfNombre').innerText = data.nombre;
       document.getElementById('pdfTelefono').innerText = data.telefono;
       document.getElementById('pdfEmail').innerText = data.email;
@@ -365,7 +365,6 @@
       document.getElementById('pdfAuditNombre').innerText = data.nombre;
       document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
       
-      // Formatear Fecha y plasmar IP traída de Google Sheets
       const fechaReal = new Date(result.fechaFirma).toLocaleString('es-ES');
       document.getElementById('pdfAuditFecha').innerText = fechaReal;
       document.getElementById('pdfAuditIp').innerText = result.ip;
@@ -385,7 +384,7 @@
       template.style.display = "none";
       
     } catch (error) {
-      alert("Error de conexión. Asegúrate de haber actualizado e Implementado como 'Nueva Versión' tu Google Apps Script.");
+      alert("Error de conexión al consultar Google Sheets.");
       console.error(error);
     }
 
