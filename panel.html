@@ -157,7 +157,7 @@
         </div>
         <div class="form-group">
           <label>Valor Inscripción:</label>
-          <input type="text" id="valorInscripcion" class="uppercase-input" value="259USD" required oninput="this.value = this.value.toUpperCase()">
+          <input type="text" id="valorInscripcion" class="uppercase-input" value="" placeholder="Ej. 259" required onblur="formatearMontoUSD(this)">
         </div>
         <div class="form-group">
           <label>Fecha Compromiso de Pago:</label>
@@ -170,13 +170,13 @@
       </div>
 
       <div class="button-group-form">
-        <button type="submit" class="btn-submit">⚡ Generar Enlace Único</button>
+        <button type="submit" class="btn-submit">⚡ Generar Enlace Corto</button>
         <button type="button" class="btn-clear" onclick="limpiarFormulario()">🧹 Limpiar Formulario</button>
       </div>
     </form>
 
     <div class="result-card" id="resultCard">
-      <h3>Enlace Listo para Enviar al Cliente:</h3>
+      <h3>Enlace Corto Listo para Enviar al Cliente:</h3>
       <input type="text" class="url-display" id="finalUrl" readonly>
       <div class="action-buttons">
         <button class="btn-action btn-copy" onclick="copiarLink()">📋 Copiar Enlace</button>
@@ -188,7 +188,6 @@
   <div class="card">
     <div class="card-title">📋 Base de Datos de Acuerdos (Nube)</div>
     
-    <!-- BUSCADOR POR CÓDIGO CRM -->
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="🔍 Buscar por Código CRM (ej. ABG-112233 ó 112233)..." oninput="filtrarPorCodigoCRM()">
       <button onclick="cargarHistorialDesdeNube()" style="background:#004085; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Actualizar Nube</button>
@@ -267,7 +266,7 @@
   <div class="pdf-section-title">5. ACEPTACIÓN</div>
   <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
-  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
+  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la acceptance de las condiciones aquí establecidas.</p>
 
   <table class="data-table" style="margin-top: 4px;">
     <tr><td><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></td><td><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></td></tr>
@@ -284,7 +283,7 @@
     <div class="highlight-item">✔ <strong>Código CRM Registrado:</strong> <span id="pdfAuditCodigo" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Fecha y Hora de Firma:</strong> <span id="pdfAuditFecha" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Dirección IP de Registro:</strong> <span id="pdfAuditIp" style="font-weight: bold;">-</span></div>
-    <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y conditions establecidas por la compañía."</div>
+    <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía."</div>
     <div class="highlight-item">✔ <strong>Estatus Legal:</strong> FIRMADO Y CONFIRMADO VÍA PLATAFORMA DIGITAL</div>
   </div>
 </div>
@@ -310,6 +309,39 @@
     input.value = "ABG-" + digits;
   }
 
+  // FORMATEAR MONTO EN DÓLARES Y CENTAVOS
+  function formatearMontoUSD(input) {
+    let raw = input.value.replace(/[^0-9.]/g, '');
+    if (!raw) return;
+    let num = parseFloat(raw);
+    if (!isNaN(num)) {
+      input.value = "$ " + num.toFixed(2) + " USD";
+    }
+  }
+
+  // CONVERTIR CUALQUIER FECHA A FORMATO DÍA/MES/AÑO (DD/MM/YYYY)
+  function formatearFechaLimpia(fechaInput) {
+    if (!fechaInput) return "-";
+    let str = fechaInput.toString().trim();
+    
+    // Si viene en formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      let parts = str.split('T')[0].split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    // Intentar interpretar Date Object
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      let day = String(d.getDate()).padStart(2, '0');
+      let month = String(d.getMonth() + 1).padStart(2, '0');
+      let year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    return str.split('T')[0].split(' ')[0];
+  }
+
   window.addEventListener('load', () => {
     cargarHistorialDesdeNube();
   });
@@ -325,7 +357,7 @@
       registrosBaseDatos = Array.isArray(data) ? data : [];
       filtrarPorCodigoCRM();
     } catch (e) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets. Verifica la implementación en Apps Script.</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets.</td></tr>';
     }
   }
 
@@ -356,8 +388,8 @@
         codigoEstudiante: item.codigoEstudiante || ""
       });
 
-      const generatedLink = `${BASE_URL}?${params.toString()}`;
-      const previewLink = generatedLink + "&modo=admin";
+      const fullLink = `${BASE_URL}?${params.toString()}`;
+      const previewLink = fullLink + "&modo=admin";
 
       let estatusCss = "status-creado";
       let estatusTexto = item.estatus || "CREADO";
@@ -405,7 +437,6 @@
     renderizarTabla();
   }
 
-  // FILTRO INTELIGENTE POR CÓDIGO CRM
   function filtrarPorCodigoCRM() {
     const rawQuery = document.getElementById('searchInput').value.toUpperCase().trim();
     const cleanDigits = rawQuery.replace(/[^0-9]/g, '');
@@ -424,7 +455,6 @@
     renderizarTabla();
   }
 
-  // GENERACIÓN DIRECTA DE ENLACE E INTEGRACIÓN CON LA NUBE
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -435,29 +465,35 @@
       return;
     }
 
+    let valorInscripcion = document.getElementById('valorInscripcion').value.trim();
+    if (!valorInscripcion) {
+      alert("⚠️ CAMPO OBLIGATORIO:\n\nEl Valor de Inscripción no puede estar vacío.");
+      return;
+    }
+    
+    // Asegurar formato si no se ejecutó onblur
+    let rawNum = parseFloat(valorInscripcion.replace(/[^0-9.]/g, ''));
+    if (!isNaN(rawNum)) {
+      valorInscripcion = "$ " + rawNum.toFixed(2) + " USD";
+      document.getElementById('valorInscripcion').value = valorInscripcion;
+    }
+
     const nombre = document.getElementById('nombre').value.trim().toUpperCase();
     const telefono = document.getElementById('telefono').value.trim();
     const email = document.getElementById('email').value.trim().toLowerCase();
     const direccion = document.getElementById('direccion').value.trim().toUpperCase();
-    const valorInscripcion = document.getElementById('valorInscripcion').value.trim().toUpperCase();
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    // 1. GENERAR Y MOSTRAR ENLACE DE INMEDIATO
-    const params = new URLSearchParams({
-      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante
-    });
+    const shortLink = `${SCRIPT_URL}?c=${encodeURIComponent(codigoEstudiante)}`;
 
-    const generatedLink = `${BASE_URL}?${params.toString()}`;
-
-    document.getElementById('finalUrl').value = generatedLink;
+    document.getElementById('finalUrl').value = shortLink;
     document.getElementById('resultCard').style.display = 'block';
 
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
-    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
+    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${shortLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
-    // 2. ACTUALIZAR GOOGLE SHEETS EN SEGUNDO PLANO
     const datosGuardar = {
       nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
     };
@@ -476,7 +512,7 @@
     document.getElementById('generatorForm').reset();
     document.getElementById('resultCard').style.display = 'none';
     document.getElementById('codigoEstudiante').value = 'ABG-';
-    document.getElementById('valorInscripcion').value = '259USD';
+    document.getElementById('valorInscripcion').value = '';
     document.getElementById('fechaPago').value = '2026-08-25';
   }
 
@@ -484,7 +520,7 @@
     const copyText = document.getElementById("finalUrl");
     copyText.select();
     document.execCommand("copy");
-    alert("¡Enlace copiado exitosamente al portapapeles!");
+    alert("¡Enlace corto copiado exitosamente al portapapeles!");
   }
 
   function descargarPDFAdministrativo(codigo) {
@@ -495,15 +531,15 @@
     document.getElementById('pdfTelefono').innerText = data.telefono;
     document.getElementById('pdfEmail').innerText = data.email;
     document.getElementById('pdfDireccion').innerText = data.direccion;
-    document.getElementById('pdfFechaAcuerdo').innerText = data.fechaRegistro ? new Date(data.fechaRegistro).toLocaleDateString() : new Date().toLocaleDateString();
+    document.getElementById('pdfFechaAcuerdo').innerText = formatearFechaLimpia(data.fechaRegistro);
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
-    document.getElementById('pdfFechaPago').innerText = data.fechaPago;
+    document.getElementById('pdfFechaPago').innerText = formatearFechaLimpia(data.fechaPago);
     document.getElementById('pdfRepresentante').innerText = data.representante;
     document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
 
     document.getElementById('pdfAuditNombre').innerText = data.nombre;
     document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
-    document.getElementById('pdfAuditFecha').innerText = data.fechaRegistro ? new Date(data.fechaRegistro).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');
+    document.getElementById('pdfAuditFecha').innerText = formatearFechaLimpia(data.fechaRegistro) + " (Confirmado)";
     document.getElementById('pdfAuditIp').innerText = data.ip || "Registrada en Servidor";
 
     const template = document.getElementById('pdfTemplate');
