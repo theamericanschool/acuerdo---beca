@@ -266,7 +266,7 @@
   <div class="pdf-section-title">5. ACEPTACIÓN</div>
   <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
-  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la acceptance de las condiciones aquí establecidas.</p>
+  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
 
   <table class="data-table" style="margin-top: 4px;">
     <tr><td><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></td><td><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></td></tr>
@@ -309,7 +309,6 @@
     input.value = "ABG-" + digits;
   }
 
-  // FORMATEAR MONTO EN DÓLARES Y CENTAVOS
   function formatearMontoUSD(input) {
     let raw = input.value.replace(/[^0-9.]/g, '');
     if (!raw) return;
@@ -319,18 +318,16 @@
     }
   }
 
-  // CONVERTIR CUALQUIER FECHA A FORMATO DÍA/MES/AÑO (DD/MM/YYYY)
+  // SOLO FECHA (DD/MM/YYYY)
   function formatearFechaLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
     
-    // Si viene en formato YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
       let parts = str.split('T')[0].split('-');
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
-    // Intentar interpretar Date Object
     let d = new Date(str);
     if (!isNaN(d.getTime())) {
       let day = String(d.getDate()).padStart(2, '0');
@@ -340,6 +337,30 @@
     }
 
     return str.split('T')[0].split(' ')[0];
+  }
+
+  // FECHA Y HORA SIN PAÍS NI ZONA HORARIA
+  function formatearFechaHoraLimpia(fechaInput) {
+    if (!fechaInput) return "-";
+    let str = fechaInput.toString().trim();
+
+    // Eliminar texto entre paréntesis tipo (hora de Venezuela) o GMT
+    str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
+
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString("es-ES", {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+
+    return str;
   }
 
   window.addEventListener('load', () => {
@@ -471,7 +492,6 @@
       return;
     }
     
-    // Asegurar formato si no se ejecutó onblur
     let rawNum = parseFloat(valorInscripcion.replace(/[^0-9.]/g, ''));
     if (!isNaN(rawNum)) {
       valorInscripcion = "$ " + rawNum.toFixed(2) + " USD";
@@ -539,7 +559,9 @@
 
     document.getElementById('pdfAuditNombre').innerText = data.nombre;
     document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
-    document.getElementById('pdfAuditFecha').innerText = formatearFechaLimpia(data.fechaRegistro) + " (Confirmado)";
+    
+    // FORMATO DE FECHA Y HORA COMPLETA (EJ: 19/8/2026, 13:06:15)
+    document.getElementById('pdfAuditFecha').innerText = formatearFechaHoraLimpia(data.fechaRegistro);
     document.getElementById('pdfAuditIp').innerText = data.ip || "Registrada en Servidor";
 
     const template = document.getElementById('pdfTemplate');
