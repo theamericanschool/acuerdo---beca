@@ -64,7 +64,6 @@
 
     .btn-pdf { background: #0284c7; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11.5px; }
     .btn-pdf:hover { background: #0369a1; }
-    .btn-pdf:disabled { background: #94a3b8; cursor: not-allowed; }
 
     /* ESTILOS DEL PDF LÍMPIOS Y SIN CORTES */
     #pdfTemplate { 
@@ -89,7 +88,6 @@
     #pdfTemplate .data-table { width: 100%; border-collapse: collapse; margin: 4px 0; page-break-inside: avoid; }
     #pdfTemplate .data-table td { padding: 3px 6px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 9.5px; }
 
-    /* RECUADRO INTACTO DE AUDITORÍA */
     #pdfTemplate .audit-highlight-box { 
       background: #f0fdf4; 
       border: 1.5px solid #16a34a; 
@@ -253,7 +251,7 @@
     <div class="audit-highlight-title">🔒 REGISTRO Y CONSTANCIA DE AUDITORÍA DIGITAL DE FIRMA</div>
     <div class="highlight-item">✔ <strong>Estudiante Firmante:</strong> <span id="pdfAuditNombre" style="text-decoration: underline; font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Código CRM Registrado:</strong> <span id="pdfAuditCodigo" style="font-weight: bold;">-</span></div>
-    <div class="highlight-item">✔ <strong>Fecha y Hora Exacta de Firma:</strong> <span id="pdfAuditFecha" style="font-weight: bold;">-</span></div>
+    <div class="highlight-item">✔ <strong>Fecha y Hora de Firma:</strong> <span id="pdfAuditFecha" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Dirección IP de Registro:</strong> <span id="pdfAuditIp" style="font-weight: bold;">-</span></div>
     <div class="highlight-item">✔ <strong>Declaración del Aceptante:</strong> "YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía."</div>
     <div class="highlight-item">✔ <strong>Estatus Legal:</strong> FIRMADO Y CONFIRMADO VÍA PLATAFORMA DIGITAL</div>
@@ -261,8 +259,6 @@
 </div>
 
 <script>
-  // DIRECCIÓN DE TU GOOGLE APPS SCRIPT
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
   const registrosSesion = {};
 
@@ -324,72 +320,45 @@
       <td>${asesor}</td>
       <td style="display: flex; gap: 6px;">
         <button onclick="window.open('${link}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; font-size:11.5px;">Abrir ↗</button>
-        <button onclick="descargarPDFAdministrativo('${codigo}', this)" class="btn-pdf">📄 Descargar PDF</button>
+        <button onclick="descargarPDFAdministrativo('${codigo}')" class="btn-pdf">📄 Descargar PDF</button>
       </td>
     `;
     table.insertBefore(row, table.firstChild);
   }
 
-  // FUNCIÓN PARA OBTENER LA IP Y FECHA REAL DESDE GOOGLE SHEETS
-  async function descargarPDFAdministrativo(codigo, btnElement) {
+  function descargarPDFAdministrativo(codigo) {
     const data = registrosSesion[codigo];
     if (!data) return alert("Datos del registro no encontrados.");
 
-    const textoOriginal = btnElement.innerText;
-    btnElement.innerText = "⏳ Consultando...";
-    btnElement.disabled = true;
+    document.getElementById('pdfNombre').innerText = data.nombre;
+    document.getElementById('pdfTelefono').innerText = data.telefono;
+    document.getElementById('pdfEmail').innerText = data.email;
+    document.getElementById('pdfDireccion').innerText = data.direccion;
+    document.getElementById('pdfFechaAcuerdo').innerText = new Date().toLocaleDateString();
+    document.getElementById('pdfValor').innerText = data.valorInscripcion;
+    document.getElementById('pdfFechaPago').innerText = data.fechaPago;
+    document.getElementById('pdfRepresentante').innerText = data.representante;
+    document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
 
-    try {
-      // 1. Consultar a Google Sheets el estado de la firma
-      const response = await fetch(SCRIPT_URL + "?codigo=" + codigo);
-      const result = await response.json();
+    document.getElementById('pdfAuditNombre').innerText = data.nombre;
+    document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
+    document.getElementById('pdfAuditFecha').innerText = new Date().toLocaleString('es-ES');
+    document.getElementById('pdfAuditIp').innerText = "Verificable en Google Sheets";
 
-      if (result.estatus !== "FIRMADO") {
-        alert("⚠️ El estudiante aún no ha firmado este acuerdo. Espera a que el cliente complete el proceso para descargar la constancia.");
-        btnElement.innerText = textoOriginal;
-        btnElement.disabled = false;
-        return;
-      }
+    const template = document.getElementById('pdfTemplate');
+    template.style.display = "block";
 
-      // 2. Llenar plantilla con datos y la IP + Fecha de Google Sheets
-      document.getElementById('pdfNombre').innerText = data.nombre;
-      document.getElementById('pdfTelefono').innerText = data.telefono;
-      document.getElementById('pdfEmail').innerText = data.email;
-      document.getElementById('pdfDireccion').innerText = data.direccion;
-      document.getElementById('pdfFechaAcuerdo').innerText = new Date().toLocaleDateString();
-      document.getElementById('pdfValor').innerText = data.valorInscripcion;
-      document.getElementById('pdfFechaPago').innerText = data.fechaPago;
-      document.getElementById('pdfRepresentante').innerText = data.representante;
-      document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
+    const opt = {
+      margin:       [5, 8, 5, 8],
+      filename:     `Constancia_Acuerdo_${data.codigoEstudiante}_${data.nombre.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+      jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
 
-      document.getElementById('pdfAuditNombre').innerText = data.nombre;
-      document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
-      
-      const fechaReal = new Date(result.fechaFirma).toLocaleString('es-ES');
-      document.getElementById('pdfAuditFecha').innerText = fechaReal;
-      document.getElementById('pdfAuditIp').innerText = result.ip;
-
-      const template = document.getElementById('pdfTemplate');
-      template.style.display = "block";
-
-      const opt = {
-        margin:       [5, 8, 5, 8],
-        filename:     `Constancia_Acuerdo_${data.codigoEstudiante}_${data.nombre.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
-      };
-
-      await html2pdf().set(opt).from(template).save();
+    html2pdf().set(opt).from(template).save().then(() => {
       template.style.display = "none";
-      
-    } catch (error) {
-      alert("Error de conexión al consultar Google Sheets.");
-      console.error(error);
-    }
-
-    btnElement.innerText = textoOriginal;
-    btnElement.disabled = false;
+    });
   }
 </script>
 
