@@ -73,10 +73,7 @@
   </ul>
 
   <div class="section-title">5. ACEPTACIÓN</div>
-  <p class="text-block">El beneficiario:</p>
-  <p class="text-block">Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación.</p>
-  <p class="text-block">Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar.</p>
-  <p class="text-block">Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
+  <p class="text-block">El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
   <div class="data-grid">
     <p><strong>Representante de la institución:</strong> <span id="representante">-</span></p>
@@ -93,14 +90,12 @@
       <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
       <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
     </label>
-
     <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
   </form>
 </div>
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
-
   const urlParams = new URLSearchParams(window.location.search);
   const getParam = (param, defaultText) => urlParams.get(param) || defaultText;
 
@@ -137,22 +132,11 @@
   }
 
   window.addEventListener('load', () => {
-    enviarAGoogle({
-      accion: "ABRIR",
-      codigoEstudiante: datosEstudiante.codigoEstudiante,
-      nombre: datosEstudiante.nombre,
-      email: datosEstudiante.email,
-      telefono: datosEstudiante.telefono,
-      direccion: datosEstudiante.direccion,
-      valorInscripcion: datosEstudiante.valorInscripcion,
-      fechaPago: datosEstudiante.fechaPago,
-      representante: datosEstudiante.representante
-    });
+    enviarAGoogle({ ...datosEstudiante, accion: "ABRIR" });
   });
 
   document.getElementById('signForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const btn = document.getElementById('btnSign');
     btn.disabled = true;
     btn.innerText = "Registrando firma...";
@@ -162,22 +146,9 @@
       const ipRes = await fetch('https://api.ipify.org?format=json');
       const ipData = await ipRes.json();
       userIp = ipData.ip;
-    } catch (ipErr) {
-      console.log("No se pudo obtener IP");
-    }
+    } catch (ipErr) { }
 
-    enviarAGoogle({
-      accion: "FIRMAR",
-      codigoEstudiante: datosEstudiante.codigoEstudiante,
-      nombre: datosEstudiante.nombre,
-      email: datosEstudiante.email,
-      telefono: datosEstudiante.telefono,
-      direccion: datosEstudiante.direccion,
-      valorInscripcion: datosEstudiante.valorInscripcion,
-      fechaPago: datosEstudiante.fechaPago,
-      representante: datosEstudiante.representante,
-      ip: userIp
-    });
+    enviarAGoogle({ ...datosEstudiante, accion: "FIRMAR", ip: userIp });
 
     setTimeout(() => {
       alert("¡Acuerdo firmado con éxito!\n\nTu confirmación ha sido registrada en nuestro sistema.");
