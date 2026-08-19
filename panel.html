@@ -318,7 +318,6 @@
     }
   }
 
-  // SOLO FECHA (DD/MM/YYYY)
   function formatearFechaLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
@@ -327,6 +326,8 @@
       let parts = str.split('T')[0].split('-');
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
+
+    str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
 
     let d = new Date(str);
     if (!isNaN(d.getTime())) {
@@ -339,12 +340,10 @@
     return str.split('T')[0].split(' ')[0];
   }
 
-  // FECHA Y HORA SIN PAÍS NI ZONA HORARIA
   function formatearFechaHoraLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
 
-    // Eliminar texto entre paréntesis tipo (hora de Venezuela) o GMT
     str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
 
     let d = new Date(str);
@@ -476,6 +475,7 @@
     renderizarTabla();
   }
 
+  // GENERACIÓN DEL ENLACE CORTO DIRECTO A GITHUB PAGES
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -505,7 +505,8 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    const shortLink = `${SCRIPT_URL}?c=${encodeURIComponent(codigoEstudiante)}`;
+    // ENLACE DIRECTO A GITHUB PAGES CON EL PARÁMETRO DE BÚSQUEDA
+    const shortLink = `${BASE_URL}?c=${encodeURIComponent(codigoEstudiante)}`;
 
     document.getElementById('finalUrl').value = shortLink;
     document.getElementById('resultCard').style.display = 'block';
@@ -559,8 +560,6 @@
 
     document.getElementById('pdfAuditNombre').innerText = data.nombre;
     document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
-    
-    // FORMATO DE FECHA Y HORA COMPLETA (EJ: 19/8/2026, 13:06:15)
     document.getElementById('pdfAuditFecha').innerText = formatearFechaHoraLimpia(data.fechaRegistro);
     document.getElementById('pdfAuditIp').innerText = data.ip || "Registrada en Servidor";
 
