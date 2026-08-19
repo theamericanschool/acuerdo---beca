@@ -39,6 +39,12 @@
     input, select { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13.5px; outline: none; transition: border-color 0.2s; background: #f8fafc; }
     input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(0, 64, 133, 0.1); }
 
+    .uppercase-input { text-transform: uppercase; }
+    .lowercase-input { text-transform: lowercase; }
+
+    .search-box { display: flex; gap: 10px; margin-bottom: 15px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    .search-box input { flex: 1; background: white; font-size: 13px; }
+
     .button-group-form { display: flex; gap: 10px; margin-top: 15px; }
     .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background 0.2s; flex: 2; }
     .btn-submit:hover { background: var(--primary-dark); }
@@ -111,7 +117,7 @@
         <p>La Escuela Americana del Inglés / American Book Group</p>
       </div>
     </div>
-    <span class="badge-status">🟢 Sistema Operativo</span>
+    <span class="badge-status">🟢 Sistema Conectado a la Nube</span>
   </div>
 
   <div class="card">
@@ -121,11 +127,11 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Código de Estudiante (CRM):</label>
-          <input type="text" id="codigoEstudiante" placeholder="Ej. ABG-4582" required>
+          <input type="text" id="codigoEstudiante" class="uppercase-input" placeholder="Ej. ABG-4582" required oninput="this.value = this.value.toUpperCase()">
         </div>
         <div class="form-group">
           <label>Nombre Completo del Estudiante:</label>
-          <input type="text" id="nombre" placeholder="Ej. Gabriela Urdaneta" required>
+          <input type="text" id="nombre" class="uppercase-input" placeholder="Ej. GABRIELA URDANETA" required oninput="this.value = this.value.toUpperCase()">
         </div>
         <div class="form-group">
           <label>Teléfono (WhatsApp con código):</label>
@@ -133,15 +139,15 @@
         </div>
         <div class="form-group">
           <label>Correo Electrónico:</label>
-          <input type="email" id="email" placeholder="ejemplo@gmail.com" required>
+          <input type="email" id="email" class="lowercase-input" placeholder="ejemplo@gmail.com" required oninput="this.value = this.value.toLowerCase()">
         </div>
         <div class="form-group">
           <label>Dirección:</label>
-          <input type="text" id="direccion" placeholder="Ej. 132 st SC 33053" required>
+          <input type="text" id="direccion" class="uppercase-input" placeholder="Ej. 132 ST SC 33053" required oninput="this.value = this.value.toUpperCase()">
         </div>
         <div class="form-group">
           <label>Valor Inscripción:</label>
-          <input type="text" id="valorInscripcion" value="259USD" required>
+          <input type="text" id="valorInscripcion" class="uppercase-input" value="259USD" required oninput="this.value = this.value.toUpperCase()">
         </div>
         <div class="form-group">
           <label>Fecha Compromiso de Pago:</label>
@@ -149,7 +155,7 @@
         </div>
         <div class="form-group">
           <label>Nombre del Asesor (Representante):</label>
-          <input type="text" id="representante" placeholder="Ej. Diego Caridad" required>
+          <input type="text" id="representante" class="uppercase-input" placeholder="Ej. DIEGO CARIDAD" required oninput="this.value = this.value.toUpperCase()">
         </div>
       </div>
 
@@ -170,20 +176,28 @@
   </div>
 
   <div class="card">
-    <div class="card-title">📋 Enlaces Generados en esta Sesión</div>
+    <div class="card-title">📋 Base de Datos de Acuerdos (Nube)</div>
+    
+    <!-- BUSCADOR CON FILTRO EN TIEMPO REAL -->
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar por Nombre, Teléfono o Código CRM..." onkeyup="filtrarTabla()">
+      <button onclick="cargarHistorialDesdeNube()" style="background:#004085; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Actualizar</button>
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
             <th>Código CRM</th>
             <th>Estudiante</th>
+            <th>Teléfono</th>
             <th>Correo</th>
             <th>Asesor</th>
-            <th>Acciones Administrativas</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="historyTable">
-          <tr id="emptyRow"><td colspan="5" style="text-align: center; color: #94a3b8;">No se han generado enlaces en esta sesión.</td></tr>
+          <tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>
         </tbody>
       </table>
     </div>
@@ -191,7 +205,7 @@
 
 </div>
 
-<!-- TEMPLATE PDF DENTRO DEL PANEL -->
+<!-- TEMPLATE PDF -->
 <div id="pdfTemplate">
   <div class="pdf-header">
     <img src="logo.png" class="pdf-logo"><br>
@@ -258,46 +272,116 @@
 </div>
 
 <script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
   const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
-  const registrosSesion = {};
-  let userIpGlobal = "IP Registrada en Servidor";
+  let registrosBaseDatos = [];
 
   window.addEventListener('load', () => {
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => { if(data.ip) userIpGlobal = data.ip; })
-      .catch(() => {});
+    cargarHistorialDesdeNube();
   });
 
-  document.getElementById('generatorForm').addEventListener('submit', (e) => {
-    e.preventDefault();
+  // CONSULTAR REGISTROS DESDE GOOGLE SHEETS
+  async function cargarHistorialDesdeNube() {
+    const tableBody = document.getElementById('historyTable');
+    tableBody.innerHTML = '<tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>';
 
-    const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim();
-    const telefono = document.getElementById('telefono').value.trim();
-    const cleanPhone = telefono.replace(/[^0-9]/g, '');
+    try {
+      const response = await fetch(SCRIPT_URL);
+      registrosBaseDatos = await response.json();
+      renderizarTabla(registrosBaseDatos);
+    } catch (e) {
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error al conectar con Google Sheets. Revisa la implementación del script.</td></tr>';
+    }
+  }
 
-    if (registrosSesion[codigoEstudiante.toLowerCase()]) {
-      alert("⚠️ ALERTA DE DUPLICADO:\n\nEl Código CRM '" + codigoEstudiante + "' ya fue registrado previamente. Por favor ingresa un código distinto.");
+  function renderizarTabla(datos) {
+    const tableBody = document.getElementById('historyTable');
+    tableBody.innerHTML = "";
+
+    if (!datos || datos.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No hay registros de acuerdos almacenados en la nube.</td></tr>';
       return;
     }
 
-    for (let key in registrosSesion) {
-      if (registrosSesion[key].cleanPhone === cleanPhone) {
-        alert("⚠️ ALERTA DE DUPLICADO:\n\nEl número de teléfono '" + telefono + "' ya está registrado con el código " + registrosSesion[key].codigoEstudiante + ". Por favor verifica los datos.");
-        return;
-      }
+    // Renderizar ordenando por el más reciente
+    [...datos].reverse().forEach(item => {
+      const params = new URLSearchParams({
+        nombre: item.nombre, telefono: item.telefono, email: item.email,
+        direccion: item.direccion, valorInscripcion: item.valorInscripcion,
+        fechaPago: item.fechaPago, representante: item.representante, codigoEstudiante: item.codigoEstudiante
+      });
+
+      const generatedLink = `${BASE_URL}?${params.toString()}`;
+      const previewLink = generatedLink + "&modo=admin";
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${item.codigoEstudiante}</strong></td>
+        <td>${item.nombre}</td>
+        <td>${item.telefono}</td>
+        <td>${item.email}</td>
+        <td>${item.representante}</td>
+        <td style="display: flex; gap: 6px;">
+          <button onclick="window.open('${previewLink}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; font-size:11.5px;">👁️ Vista Previa</button>
+          <button onclick="descargarPDFAdministrativo('${item.codigoEstudiante}')" class="btn-pdf">📄 PDF</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // BUSCADOR CON FILTRO DINÁMICO
+  function filtrarTabla() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const filtrados = registrosBaseDatos.filter(item => {
+      const crm = (item.codigoEstudiante || "").toLowerCase();
+      const nom = (item.nombre || "").toLowerCase();
+      const tel = (item.telefono || "").toLowerCase();
+      return crm.includes(query) || nom.includes(query) || tel.includes(query);
+    });
+    renderizarTabla(filtrados);
+  }
+
+  // ENVÍO DE NUEVO ACUERDO
+  document.getElementById('generatorForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const codigoEstudiante = document.getElementById('codigoEstudiante').value.trim().toUpperCase();
+    const telefono = document.getElementById('telefono').value.trim();
+    const cleanPhone = telefono.replace(/[^0-9]/g, '');
+
+    // VALIDAR DUPLICADO EN LA NUBE
+    const existeCodigo = registrosBaseDatos.some(i => i.codigoEstudiante.toUpperCase() === codigoEstudiante);
+    if (existeCodigo) {
+      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl Código CRM '" + codigoEstudiante + "' ya se encuentra registrado. Usa un código único.");
+      return;
     }
 
-    const nombre = document.getElementById('nombre').value;
-    const email = document.getElementById('email').value;
-    const direccion = document.getElementById('direccion').value;
-    const valorInscripcion = document.getElementById('valorInscripcion').value;
-    const fechaPago = document.getElementById('fechaPago').value;
-    const representante = document.getElementById('representante').value;
+    const existeTel = registrosBaseDatos.some(i => i.telefono.replace(/[^0-9]/g, '') === cleanPhone);
+    if (existeTel) {
+      alert("⚠️ DUPLICADO DETECTADO EN LA NUBE:\n\nEl teléfono '" + telefono + "' ya está asociado a otro registro.");
+      return;
+    }
 
-    registrosSesion[codigoEstudiante.toLowerCase()] = { 
-      nombre, telefono, cleanPhone, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, ip: userIpGlobal 
+    const nombre = document.getElementById('nombre').value.trim().toUpperCase();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const direccion = document.getElementById('direccion').value.trim().toUpperCase();
+    const valorInscripcion = document.getElementById('valorInscripcion').value.trim().toUpperCase();
+    const fechaPago = document.getElementById('fechaPago').value;
+    const representante = document.getElementById('representante').value.trim().toUpperCase();
+
+    const datosGuardar = {
+      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
     };
+
+    // GUARDAR EN GOOGLE SHEETS
+    const formBody = new URLSearchParams(datosGuardar).toString();
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody,
+      mode: 'no-cors'
+    });
 
     const params = new URLSearchParams({
       nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante
@@ -311,7 +395,9 @@
     const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${generatedLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
-    agregarAlHistorial(codigoEstudiante, nombre, email, representante, generatedLink);
+    setTimeout(() => {
+      cargarHistorialDesdeNube();
+    }, 1500);
   });
 
   function limpiarFormulario() {
@@ -328,37 +414,15 @@
     alert("¡Enlace copiado exitosamente al portapapeles!");
   }
 
-  function agregarAlHistorial(codigo, nombre, email, asesor, link) {
-    const emptyRow = document.getElementById('emptyRow');
-    if (emptyRow) emptyRow.remove();
-
-    const previewLink = link + "&modo=admin";
-
-    const table = document.getElementById('historyTable');
-    const row = document.createElement('tr');
-
-    row.innerHTML = `
-      <td><strong>${codigo}</strong></td>
-      <td>${nombre}</td>
-      <td>${email}</td>
-      <td>${asesor}</td>
-      <td style="display: flex; gap: 6px;">
-        <button onclick="window.open('${previewLink}', '_blank')" style="border:none; background:#e0f2fe; color:#0369a1; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:600; font-size:11.5px;">👁️ Ver Vista Previa</button>
-        <button onclick="descargarPDFAdministrativo('${codigo}')" class="btn-pdf">📄 Descargar PDF</button>
-      </td>
-    `;
-    table.insertBefore(row, table.firstChild);
-  }
-
   function descargarPDFAdministrativo(codigo) {
-    const data = registrosSesion[codigo.toLowerCase()];
-    if (!data) return alert("Datos del registro no encontrados.");
+    const data = registrosBaseDatos.find(i => i.codigoEstudiante.toUpperCase() === codigo.toUpperCase());
+    if (!data) return alert("Registro no encontrado.");
 
     document.getElementById('pdfNombre').innerText = data.nombre;
     document.getElementById('pdfTelefono').innerText = data.telefono;
     document.getElementById('pdfEmail').innerText = data.email;
     document.getElementById('pdfDireccion').innerText = data.direccion;
-    document.getElementById('pdfFechaAcuerdo').innerText = new Date().toLocaleDateString();
+    document.getElementById('pdfFechaAcuerdo').innerText = new Date(data.fechaRegistro).toLocaleDateString() || new Date().toLocaleDateString();
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
     document.getElementById('pdfFechaPago').innerText = data.fechaPago;
     document.getElementById('pdfRepresentante').innerText = data.representante;
@@ -366,8 +430,8 @@
 
     document.getElementById('pdfAuditNombre').innerText = data.nombre;
     document.getElementById('pdfAuditCodigo').innerText = data.codigoEstudiante;
-    document.getElementById('pdfAuditFecha').innerText = new Date().toLocaleString('es-ES');
-    document.getElementById('pdfAuditIp').innerText = data.ip;
+    document.getElementById('pdfAuditFecha').innerText = data.fechaRegistro ? new Date(data.fechaRegistro).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');
+    document.getElementById('pdfAuditIp').innerText = data.ip || "Registrada en Servidor";
 
     const template = document.getElementById('pdfTemplate');
     template.style.display = "block";
