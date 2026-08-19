@@ -25,12 +25,17 @@
     .btn-sign { background-color: #198754; color: white; border: none; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
     .btn-sign:hover { background-color: #146c43; }
     .btn-sign:disabled { background-color: #6c757d; cursor: not-allowed; }
+    .admin-banner { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px; text-align: center; font-weight: bold; }
     @media (max-width: 480px) { .data-grid { grid-template-columns: 1fr; } .logo-img { max-width: 190px; } }
   </style>
 </head>
 <body>
 
 <div class="contract-card">
+  <div id="adminNotice" class="admin-banner" style="display: none;">
+    👁️ MODO VISTA PREVIA ADMINISTRATIVA: Las acciones en esta pantalla no generan registros en Google Sheets.
+  </div>
+
   <div class="header">
     <img src="logo.png" alt="La Escuela del Inglés" class="logo-img">
     <h1>Acuerdo de Reserva y Activación de Beneficio Educativo</h1>
@@ -99,6 +104,12 @@
   const urlParams = new URLSearchParams(window.location.search);
   const getParam = (param, defaultText) => urlParams.get(param) || defaultText;
 
+  const isAdminView = urlParams.get('modo') === 'admin';
+
+  if (isAdminView) {
+    document.getElementById('adminNotice').style.display = 'block';
+  }
+
   const datosEstudiante = {
     nombre: getParam('nombre', 'Estudiante de Prueba'),
     telefono: getParam('telefono', '0000000000'),
@@ -122,6 +133,9 @@
   document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
 
   function enviarAGoogle(datos) {
+    // SI ES MODO ADMINISTRATIVO, IGNORAR ENVÍO
+    if (isAdminView) return;
+
     const formBody = new URLSearchParams(datos).toString();
     fetch(SCRIPT_URL, {
       method: 'POST',
@@ -131,12 +145,21 @@
     });
   }
 
+  // SOLO REGISTRAR APERTURA SI VIENE DE UN CLIENTE REAL
   window.addEventListener('load', () => {
-    enviarAGoogle({ ...datosEstudiante, accion: "ABRIR" });
+    if (!isAdminView) {
+      enviarAGoogle({ ...datosEstudiante, accion: "ABRIR" });
+    }
   });
 
   document.getElementById('signForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    if (isAdminView) {
+      alert("Modo Vista Previa: No se registrarán firmas ficticias en el sistema.");
+      return;
+    }
+
     const btn = document.getElementById('btnSign');
     btn.disabled = true;
     btn.innerText = "Registrando firma...";
