@@ -170,13 +170,13 @@
       </div>
 
       <div class="button-group-form">
-        <button type="submit" class="btn-submit">⚡ Generar Enlace Corto</button>
+        <button type="submit" class="btn-submit">⚡ Generar Enlace Único</button>
         <button type="button" class="btn-clear" onclick="limpiarFormulario()">🧹 Limpiar Formulario</button>
       </div>
     </form>
 
     <div class="result-card" id="resultCard">
-      <h3>Enlace Corto Listo para Enviar al Cliente:</h3>
+      <h3>Enlace Listo para Enviar al Cliente:</h3>
       <input type="text" class="url-display" id="finalUrl" readonly>
       <div class="action-buttons">
         <button class="btn-action btn-copy" onclick="copiarLink()">📋 Copiar Enlace</button>
@@ -266,7 +266,7 @@
   <div class="pdf-section-title">5. ACEPTACIÓN</div>
   <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
-  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
+  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí established.</p>
 
   <table class="data-table" style="margin-top: 4px;">
     <tr><td><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></td><td><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></td></tr>
@@ -475,7 +475,7 @@
     renderizarTabla();
   }
 
-  // GENERACIÓN DEL ENLACE CORTO DIRECTO A GITHUB PAGES
+  // CONSTRUCCIÓN DEL ENLACE COMPLETO EN EL DOMINIO ORIGINAL
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -505,14 +505,24 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    // ENLACE DIRECTO A GITHUB PAGES CON EL PARÁMETRO DE BÚSQUEDA
-    const shortLink = `${BASE_URL}?c=${encodeURIComponent(codigoEstudiante)}`;
+    const params = new URLSearchParams({
+      nombre,
+      telefono,
+      email,
+      direccion,
+      valorInscripcion,
+      fechaPago,
+      representante,
+      codigoEstudiante
+    });
 
-    document.getElementById('finalUrl').value = shortLink;
+    const fullLink = `${BASE_URL}?${params.toString()}`;
+
+    document.getElementById('finalUrl').value = fullLink;
     document.getElementById('resultCard').style.display = 'block';
 
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
-    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${shortLink}`;
+    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
     const datosGuardar = {
@@ -541,7 +551,7 @@
     const copyText = document.getElementById("finalUrl");
     copyText.select();
     document.execCommand("copy");
-    alert("¡Enlace corto copiado exitosamente al portapapeles!");
+    alert("¡Enlace copiado exitosamente al portapapeles!");
   }
 
   function descargarPDFAdministrativo(codigo) {
