@@ -19,15 +19,56 @@
 
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
-    
-    .dashboard-container { max-width: 950px; margin: 0 auto; }
+
+    /* ESTILOS PANTALLA DE LOGIN */
+    .login-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 85vh;
+    }
+    .login-card {
+      background: var(--card-bg);
+      padding: 35px 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 400px;
+      border-top: 6px solid var(--primary);
+      text-align: center;
+    }
+    .login-card img { height: 50px; margin-bottom: 15px; }
+    .login-card h2 { font-size: 18px; color: var(--primary); margin: 0 0 5px 0; text-transform: uppercase; }
+    .login-card p { font-size: 12px; color: #64748b; margin-bottom: 25px; }
+    .login-form { display: flex; flex-direction: column; gap: 15px; text-align: left; }
+    .btn-login {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: var(--primary-dark); }
+    .login-error { color: #ef4444; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center; }
+
+    /* CONTENEDOR DASHBOARD */
+    .dashboard-container { max-width: 950px; margin: 0 auto; display: none; }
     
     .top-bar { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
     .header-info { display: flex; align-items: center; gap: 15px; }
     .logo-img { height: 48px; width: auto; object-fit: contain; }
     .top-bar h1 { margin: 0; font-size: 18px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
     .top-bar p { margin: 3px 0 0 0; font-size: 12px; color: #64748b; }
+    
+    .user-badge-group { display: flex; align-items: center; gap: 12px; }
     .badge-status { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .btn-logout:hover { background: #dc2626; }
 
     .card { background: var(--card-bg); padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
     .card-title { font-size: 14px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
@@ -117,7 +158,30 @@
 </head>
 <body>
 
-<div class="dashboard-container">
+<!-- PANTALLA DE INICIO DE SESIÓN -->
+<div class="login-wrapper" id="loginScreen">
+  <div class="login-card">
+    <img src="logo.png" alt="La Escuela del Inglés">
+    <h2>Panel de Asesores</h2>
+    <p>Ingresa tus credenciales para acceder</p>
+    
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label>Usuario:</label>
+        <input type="text" id="loginUser" class="lowercase-input" placeholder="Ej. dcaridad" required>
+      </div>
+      <div class="form-group">
+        <label>Contraseña:</label>
+        <input type="password" id="loginPass" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-login" id="btnLogin">🔒 Iniciar Sesión</button>
+      <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+    </form>
+  </div>
+</div>
+
+<!-- PANEL DASHBOARD (PROTEGIDO) -->
+<div class="dashboard-container" id="dashboardContainer">
   
   <div class="top-bar">
     <div class="header-info">
@@ -127,7 +191,10 @@
         <p>La Escuela Americana del Inglés / American Book Group</p>
       </div>
     </div>
-    <span class="badge-status">🟢 Sistema Conectado a la Nube</span>
+    <div class="user-badge-group">
+      <span class="badge-status" id="userBadge">👤 Asesor</span>
+      <button class="btn-logout" onclick="cerrarSesion()">🚪 Salir</button>
+    </div>
   </div>
 
   <div class="card">
@@ -266,7 +333,7 @@
   <div class="pdf-section-title">5. ACEPTACIÓN</div>
   <p>El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
 
-  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí established.</p>
+  <p style="margin-top: 4px;">La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</p>
 
   <table class="data-table" style="margin-top: 4px;">
     <tr><td><strong>Representante de la institución:</strong> <span id="pdfRepresentante">-</span></td><td><strong>Código de estudiante:</strong> <span id="pdfCodigo">-</span></td></tr>
@@ -296,6 +363,63 @@
   let registrosFiltrados = [];
   let paginaActual = 1;
   const registrosPorPagina = 20;
+
+  // LÓGICA DE INICIO Y CIERRE DE SESIÓN
+  window.addEventListener('load', () => {
+    const usuarioGuardado = sessionStorage.getItem('asesor_autenticado');
+    if (usuarioGuardado) {
+      mostrarDashboard(usuarioGuardado);
+    }
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnLogin');
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+
+    btn.disabled = true;
+    btn.innerText = "Verificando...";
+
+    const usuario = document.getElementById('loginUser').value.trim().toLowerCase();
+    const clave = document.getElementById('loginPass').value.trim();
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ accion: "LOGIN", usuario, clave }).toString()
+      });
+      const data = await res.json();
+
+      if (data.status === "SUCCESS") {
+        sessionStorage.setItem('asesor_autenticado', data.nombre);
+        document.getElementById('representante').value = data.nombre.toUpperCase();
+        mostrarDashboard(data.nombre);
+      } else {
+        err.innerText = data.message || "Credenciales incorrectas.";
+        err.style.display = 'block';
+      }
+    } catch (error) {
+      err.innerText = "Error de conexión. Intenta de nuevo.";
+      err.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "🔒 Iniciar Sesión";
+    }
+  });
+
+  function mostrarDashboard(nombreAsesor) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboardContainer').style.display = 'block';
+    document.getElementById('userBadge').innerText = "👤 " + nombreAsesor;
+    cargarHistorialDesdeNube();
+  }
+
+  function cerrarSesion() {
+    sessionStorage.removeItem('asesor_autenticado');
+    location.reload();
+  }
 
   function formatCodigoCRM(input) {
     let val = input.value.toUpperCase();
@@ -361,10 +485,6 @@
 
     return str;
   }
-
-  window.addEventListener('load', () => {
-    cargarHistorialDesdeNube();
-  });
 
   async function cargarHistorialDesdeNube() {
     const tableBody = document.getElementById('historyTable');
@@ -475,7 +595,6 @@
     renderizarTabla();
   }
 
-  // CONSTRUCCIÓN DEL ENLACE COMPLETO EN EL DOMINIO ORIGINAL
   document.getElementById('generatorForm').addEventListener('submit', (e) => {
     e.preventDefault();
 
