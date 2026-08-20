@@ -20,7 +20,7 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
 
-    /* ESTILOS PANTALLA DE LOGIN */
+    /* PANTALLA LOGIN */
     .login-wrapper {
       display: flex;
       justify-content: center;
@@ -56,7 +56,7 @@
     .btn-login:hover { background: var(--primary-dark); }
     .login-error { color: #ef4444; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center; }
 
-    /* CONTENEDOR DASHBOARD */
+    /* DASHBOARD */
     .dashboard-container { max-width: 950px; margin: 0 auto; display: none; }
     
     .top-bar { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
@@ -158,7 +158,7 @@
 </head>
 <body>
 
-<!-- PANTALLA DE INICIO DE SESIÓN -->
+<!-- PANTALLA INICIO DE SESIÓN -->
 <div class="login-wrapper" id="loginScreen">
   <div class="login-card">
     <img src="logo.png" alt="La Escuela del Inglés">
@@ -180,7 +180,7 @@
   </div>
 </div>
 
-<!-- PANEL DASHBOARD (PROTEGIDO) -->
+<!-- DASHBOARD -->
 <div class="dashboard-container" id="dashboardContainer">
   
   <div class="top-bar">
@@ -228,7 +228,7 @@
         </div>
         <div class="form-group">
           <label>Fecha Compromiso de Pago:</label>
-          <input type="date" id="fechaPago" value="2026-08-25" required>
+          <input type="date" id="fechaPago" required>
         </div>
         <div class="form-group">
           <label>Nombre del Asesor (Representante):</label>
@@ -364,15 +364,22 @@
   let paginaActual = 1;
   const registrosPorPagina = 20;
 
-  // VERIFICACIÓN DE SESIÓN AL CARGAR LA PÁGINA
+  // FECHA DINÁMICA DE HOY + 7 DÍAS EN FORMATO YYYY-MM-DD
+  function obtenerFechaMas7Dias() {
+    const hoy = new Date();
+    hoy.setDate(hoy.getDate() + 7);
+    return hoy.toISOString().split('T')[0];
+  }
+
   window.addEventListener('load', () => {
     const usuarioGuardado = sessionStorage.getItem('asesor_autenticado');
     if (usuarioGuardado) {
       mostrarDashboard(usuarioGuardado);
     }
+    document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
   });
 
-  // INICIO DE SESIÓN MEDIANTE CONSULTA DINÁMICA (JSONP)
+  // INICIO DE SESIÓN MEDIANTE JSONP
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnLogin');
@@ -451,6 +458,7 @@
     }
   }
 
+  // FORMATEO EXCLUSIVO DD/MM/YYYY SIN HORA NI PAÍS
   function formatearFechaLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
@@ -473,6 +481,7 @@
     return str.split('T')[0].split(' ')[0];
   }
 
+  // FORMATEO DE FECHA Y HORA DE FIRMA SIN PAÍS
   function formatearFechaHoraLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
@@ -672,7 +681,7 @@
     document.getElementById('resultCard').style.display = 'none';
     document.getElementById('codigoEstudiante').value = 'ABG-';
     document.getElementById('valorInscripcion').value = '';
-    document.getElementById('fechaPago').value = '2026-08-25';
+    document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
   }
 
   function copiarLink() {
