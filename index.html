@@ -40,6 +40,19 @@
     .signed-badge-title { font-size: 15px; font-weight: bold; color: #15803d; text-transform: uppercase; margin-bottom: 5px; }
     .signed-badge-sub { font-size: 12px; color: #166534; margin: 0; }
 
+    /* TARJETA DE EXPIRACIÓN */
+    .expired-card {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      border-radius: 8px;
+      padding: 25px;
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+    .expired-title { font-size: 16px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; }
+    .expired-sub { font-size: 13px; color: #991b1b; margin: 0; line-height: 1.5; }
+
     @media (max-width: 480px) { .data-grid { grid-template-columns: 1fr; } .logo-img { max-width: 190px; } }
   </style>
 </head>
@@ -56,65 +69,73 @@
     <h2 id="subtituloHeader">LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP</h2>
   </div>
 
-  <p class="text-block">Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación.</p>
+  <div id="contractBody">
+    <p class="text-block">Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación.</p>
 
-  <div class="section-title">1. DATOS DEL BENEFICIARIO</div>
-  <div class="data-grid">
-    <p><strong>Nombre:</strong> <span id="nombre">-</span></p>
-    <p><strong>Teléfono:</strong> <span id="telefono">-</span></p>
-    <p><strong>Correo:</strong> <span id="email">-</span></p>
-    <p><strong>Dirección:</strong> <span id="direccion">-</span></p>
-    <p><strong>Fecha del acuerdo:</strong> <span id="fechaAcuerdo">-</span></p>
+    <div class="section-title">1. DATOS DEL BENEFICIARIO</div>
+    <div class="data-grid">
+      <p><strong>Nombre:</strong> <span id="nombre">-</span></p>
+      <p><strong>Teléfono:</strong> <span id="telefono">-</span></p>
+      <p><strong>Correo:</strong> <span id="email">-</span></p>
+      <p><strong>Dirección:</strong> <span id="direccion">-</span></p>
+      <p><strong>Fecha del acuerdo:</strong> <span id="fechaAcuerdo">-</span></p>
+    </div>
+
+    <div class="section-title">2. BENEFICIO OTORGADO</div>
+    <p class="text-block">El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
+    <p class="text-block" id="textoBeneficios">El beneficio incluye el acceso al programa educativo, plataforma de estudio, <span id="clasesEnVivoTexto">clases en vivo, </span>recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
+    <div class="data-grid">
+      <p><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="valorInscripcion">-</span></p>
+    </div>
+
+    <div class="section-title">3. RESERVA Y COMPROMISO</div>
+    <p class="text-block">El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="clausulaSancion"></span>.</p>
+    <div class="data-grid">
+      <p><strong>Fecha acordada para realizar el pago:</strong> <span id="fechaPago">-</span></p>
+    </div>
+    <p class="text-block">El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
+
+    <div class="section-title" id="tituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
+    <p class="text-block"><span id="nombreEntidadCompromisos">LA ESCUELA AMERICANA DEL INGLÉS</span> se compromete a:</p>
+    <ul class="ul-commitments">
+      <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo.</li>
+      <li>Respetar el beneficio y el valor de inscripción aquí establecidos.</li>
+      <li>Proporcionar al beneficiario la información y los medios necesarios para completar su inscripción.</li>
+      <li>Proceder con la activación del programa una vez cumplidas las condiciones de inscripción.</li>
+      <li>Entregar al beneficiario la información y comprobantes de pago correspondientes a su proceso de inscripción y activación.</li>
+    </ul>
+
+    <div class="section-title">5. ACEPTACIÓN</div>
+    <p class="text-block">El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
+
+    <div class="data-grid">
+      <p><strong>Representante de la institución:</strong> <span id="representante">-</span></p>
+      <p><strong>Código de estudiante:</strong> <span id="codigoEstudiante">-</span></p>
+    </div>
+
+    <div class="legal-disclaimer" id="legalDisclaimerText">
+      <span id="entidadDisclaimer">LA ESCUELA AMERICANA DEL INGLES/AMERICAN BOOK GROUP</span>, no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas o externas ajenas al control razonable de la institución.<br><br>
+      La institución garantiza las condiciones del beneficio expresamente establecidas en este acuerdo, pero no garantiza resultados académicos, laborales, económicos o personales específicos, los cuales pueden depender de la participación, dedicación y circunstancias particulares del estudiante.
+    </div>
+
+    <form id="signForm" style="margin-top: 20px;">
+      <label style="font-size: 13px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
+        <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
+      </label>
+      <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
+    </form>
   </div>
-
-  <div class="section-title">2. BENEFICIO OTORGADO</div>
-  <p class="text-block">El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
-  <p class="text-block" id="textoBeneficios">El beneficio incluye el acceso al programa educativo, plataforma de estudio, <span id="clasesEnVivoTexto">clases en vivo, </span>recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
-  <div class="data-grid">
-    <p><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="valorInscripcion">-</span></p>
-  </div>
-
-  <div class="section-title">3. RESERVA Y COMPROMISO</div>
-  <p class="text-block">El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="clausulaSancion">, de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.</span></p>
-  <div class="data-grid">
-    <p><strong>Fecha acordada para realizar el pago:</strong> <span id="fechaPago">-</span></p>
-  </div>
-  <p class="text-block">El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
-
-  <div class="section-title" id="tituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
-  <p class="text-block"><span id="nombreEntidadCompromisos">LA ESCUELA AMERICANA DEL INGLÉS</span> se compromete a:</p>
-  <ul class="ul-commitments">
-    <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo.</li>
-    <li>Respetar el beneficio y el valor de inscripción aquí establecidos.</li>
-    <li>Proporcionar al beneficiario la información y los medios necesarios para completar su inscripción.</li>
-    <li>Proceder con la activación del programa una vez cumplidas las condiciones de inscripción.</li>
-    <li>Entregar al beneficiario la información y comprobantes de pago correspondientes a su proceso de inscripción y activación.</li>
-  </ul>
-
-  <div class="section-title">5. ACEPTACIÓN</div>
-  <p class="text-block">El beneficiario: Declara haber recibido información clara sobre el beneficio otorgado, el valor a pagar de la inscripción, la fecha acordada y las condiciones de activación. Confirma haber tenido la oportunidad de realizar preguntas y solicitar aclaraciones antes de firmar. Asimismo, autoriza a American Book Group y a su representante a contactarse con él/ella con el motivo de finiquitar el proceso de inscripción, aceptando recibir: llamadas, mensajes (SMS), WhatsApp, correos electrónicos pertinentes al cobro de la misma.</p>
-
-  <div class="data-grid">
-    <p><strong>Representante de la institución:</strong> <span id="representante">-</span></p>
-    <p><strong>Código de estudiante:</strong> <span id="codigoEstudiante">-</span></p>
-  </div>
-
-  <div class="legal-disclaimer" id="legalDisclaimerText">
-    <span id="entidadDisclaimer">LA ESCUELA AMERICANA DEL INGLES/AMERICAN BOOK GROUP</span>, no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas o externas ajenas al control razonable de la institución.<br><br>
-    La institución garantiza las condiciones del beneficio expresamente establecidas en este acuerdo, pero no garantiza resultados académicos, laborales, económicos o personales específicos, los cuales pueden depender de la participación, dedicación y circunstancias particulares del estudiante.
-  </div>
-
-  <form id="signForm" style="margin-top: 20px;">
-    <label style="font-size: 13px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
-      <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
-      <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
-    </label>
-    <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
-  </form>
 
   <div class="signed-badge-box" id="signedBadgeBox">
     <div class="signed-badge-title">✅ ACUERDO FIRMADO ELECTRÓNICAMENTE</div>
     <p class="signed-badge-sub" id="signedDetails">Este documento ha sido firmado y registrado en nuestro sistema legal.</p>
+  </div>
+
+  <div class="expired-card" id="expiredCard">
+    <div style="font-size: 40px; margin-bottom: 10px;">⏰</div>
+    <div class="expired-title">Enlace Expirado</div>
+    <p class="expired-sub">El tiempo límite de 10 minutos para completar la firma digital de este acuerdo ha finalizado.<br><br>Por favor, ponte en contacto con tu asesor para recibir un nuevo enlace.</p>
   </div>
 </div>
 
@@ -203,6 +224,7 @@
     });
   }
 
+  // VALIDACIÓN DE 10 MINUTOS Y ESTADO DE FIRMA AL CARGAR
   window.addEventListener('load', () => {
     if (isAdminView) return;
 
@@ -216,7 +238,19 @@
       }
 
       if (data && data.estatus === "FIRMADO") {
-        bloquearComoFirmado(data.fechaHora, data.ip);
+        bloquearComoFirmado(data.ip);
+      } else if (data && data.estatus === "EXPIRADO") {
+        bloquearComoExpirado();
+      } else if (data && data.fechaCreacion) {
+        // VALIDAR TIEMPO DE 10 MINUTOS
+        const fechaCreacion = new Date(data.fechaCreacion);
+        const ahora = new Date();
+        const diferenciaMinutos = (ahora - fechaCreacion) / (1000 * 60);
+
+        if (diferenciaMinutos > 10) {
+          enviarAGoogle({ ...datosEstudiante, accion: "EXPIRAR" });
+          bloquearComoExpirado();
+        }
       }
     };
 
@@ -225,16 +259,20 @@
     document.body.appendChild(scriptStatus);
   });
 
-  function bloquearComoFirmado(fechaHora, ip) {
+  function bloquearComoFirmado(ip) {
+    document.getElementById('contractBody').style.display = 'block';
     document.getElementById('signForm').style.display = 'none';
     const box = document.getElementById('signedBadgeBox');
     const details = document.getElementById('signedDetails');
-    
-    let infoExtra = "";
-    if (ip) infoExtra += ` | IP: ${ip}`;
-    
+    let infoExtra = ip ? ` | IP: ${ip}` : '';
     details.innerText = `Este acuerdo fue firmado exitosamente y se encuentra guardado en el sistema.${infoExtra}`;
     box.style.display = 'block';
+  }
+
+  function bloquearComoExpirado() {
+    document.getElementById('contractBody').style.display = 'none';
+    document.getElementById('signedBadgeBox').style.display = 'none';
+    document.getElementById('expiredCard').style.display = 'block';
   }
 
   document.getElementById('signForm').addEventListener('submit', async (e) => {
@@ -259,7 +297,7 @@
     enviarAGoogle({ ...datosEstudiante, accion: "FIRMAR", ip: userIp });
 
     setTimeout(() => {
-      bloquearComoFirmado(new Date(), userIp);
+      bloquearComoFirmado(userIp);
       alert("¡Acuerdo firmado con éxito!\n\nTu confirmación ha sido registrada en nuestro sistema.");
     }, 1000);
   });
