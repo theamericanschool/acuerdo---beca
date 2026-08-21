@@ -122,16 +122,7 @@
     .status-abierto { background: #dbeafe; color: #1e40af; }
     .status-firmado { background: #dcfce7; color: #166534; }
 
-    #pdfTemplate { 
-      display: none; 
-      width: 700px; 
-      padding: 10px; 
-      font-family: Arial, Helvetica, sans-serif; 
-      font-size: 10px; 
-      color: #000; 
-      line-height: 1.25; 
-      background: white; 
-    }
+    #pdfTemplate { display: none; width: 700px; padding: 10px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #000; line-height: 1.25; background: white; }
     #pdfTemplate .pdf-header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #004085; padding-bottom: 6px; }
     #pdfTemplate .pdf-logo { max-width: 170px; height: auto; margin-bottom: 4px; }
     #pdfTemplate h1 { font-size: 12px; font-weight: bold; margin: 0; text-transform: uppercase; color: #004085; }
@@ -144,21 +135,14 @@
     #pdfTemplate .data-table { width: 100%; border-collapse: collapse; margin: 4px 0; page-break-inside: avoid; }
     #pdfTemplate .data-table td { padding: 3px 6px; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 9.5px; }
 
-    #pdfTemplate .audit-highlight-box { 
-      background: #f0fdf4; 
-      border: 1.5px solid #16a34a; 
-      padding: 8px 10px; 
-      margin-top: 8px; 
-      border-radius: 5px; 
-      page-break-inside: avoid; 
-    }
+    #pdfTemplate .audit-highlight-box { background: #f0fdf4; border: 1.5px solid #16a34a; padding: 8px 10px; margin-top: 8px; border-radius: 5px; page-break-inside: avoid; }
     #pdfTemplate .audit-highlight-title { font-weight: bold; color: #15803d; text-transform: uppercase; font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #bbf7d0; padding-bottom: 2px; }
     #pdfTemplate .highlight-item { font-size: 9.5px; margin: 2px 0; color: #166534; }
   </style>
 </head>
 <body>
 
-<!-- PANTALLA INICIO DE SESIÓN -->
+<!-- PANTALLA LOGIN -->
 <div class="login-wrapper" id="loginScreen">
   <div class="login-card">
     <img src="logo.png" alt="La Escuela del Inglés">
@@ -202,6 +186,13 @@
     
     <form id="generatorForm">
       <div class="form-grid">
+        <div class="form-group">
+          <label>Modalidad de Curso:</label>
+          <select id="tipoCurso" required>
+            <option value="La Escuela del Ingles" selected>La Escuela del Inglés</option>
+            <option value="Ingles en 100 Dias">Inglés en 100 Días</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Código de Estudiante (CRM):</label>
           <input type="text" id="codigoEstudiante" class="uppercase-input" value="ABG-" maxlength="10" placeholder="ABG-123456" required oninput="formatCodigoCRM(this)">
@@ -308,7 +299,7 @@
 
   <div class="pdf-section-title">2. BENEFICIO OTORGADO</div>
   <p>El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
-  <p>El beneficio incluye el acceso al programa educativo, plataforma de estudio, clases en vivo, recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
+  <p id="pdfClasesEnVivo">El beneficio incluye el acceso al programa educativo, plataforma de estudio, clases en vivo, recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
   <table class="data-table">
     <tr><td><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="pdfValor">-</span></td></tr>
   </table>
@@ -364,7 +355,6 @@
   let paginaActual = 1;
   const registrosPorPagina = 20;
 
-  // FECHA DINÁMICA DE HOY + 7 DÍAS EN FORMATO YYYY-MM-DD
   function obtenerFechaMas7Dias() {
     const hoy = new Date();
     hoy.setDate(hoy.getDate() + 7);
@@ -379,7 +369,6 @@
     document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
   });
 
-  // INICIO DE SESIÓN MEDIANTE JSONP
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnLogin');
@@ -458,7 +447,6 @@
     }
   }
 
-  // FORMATEO EXCLUSIVO DD/MM/YYYY SIN HORA NI PAÍS
   function formatearFechaLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
@@ -481,7 +469,6 @@
     return str.split('T')[0].split(' ')[0];
   }
 
-  // FORMATEO DE FECHA Y HORA DE FIRMA SIN PAÍS
   function formatearFechaHoraLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
@@ -635,6 +622,7 @@
       document.getElementById('valorInscripcion').value = valorInscripcion;
     }
 
+    const tipoCurso = document.getElementById('tipoCurso').value;
     const nombre = document.getElementById('nombre').value.trim().toUpperCase();
     const telefono = document.getElementById('telefono').value.trim();
     const email = document.getElementById('email').value.trim().toLowerCase();
@@ -643,6 +631,7 @@
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
     const params = new URLSearchParams({
+      tipoCurso,
       nombre,
       telefono,
       email,
@@ -659,7 +648,7 @@
     document.getElementById('resultCard').style.display = 'block';
 
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
-    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (Programa Latinos Bilingües)* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
+    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (${tipoCurso})* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
     const datosGuardar = {
