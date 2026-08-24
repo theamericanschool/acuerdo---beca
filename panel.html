@@ -451,7 +451,7 @@
     if (!raw) return;
     let num = parseFloat(raw);
     if (!isNaN(num)) {
-      input.value = "$ " + num.toFixed(2) + " USD";
+      input.value = "$" + num.toFixed(2) + " USD";
     }
   }
 
@@ -666,7 +666,7 @@
     
     let rawNum = parseFloat(valorInscripcion.replace(/[^0-9.]/g, ''));
     if (!isNaN(rawNum)) {
-      valorInscripcion = "$ " + rawNum.toFixed(2) + " USD";
+      valorInscripcion = "$" + rawNum.toFixed(2) + " USD";
       document.getElementById('valorInscripcion').value = valorInscripcion;
     }
 
@@ -732,9 +732,9 @@
     const data = registrosBaseDatos.find(i => (i.codigoEstudiante || "").toUpperCase() === codigo.toUpperCase());
     if (!data) return alert("Registro no encontrado.");
 
-    const tipoCurso = document.getElementById('tipoCurso').value;
+    const tipoCursoSeleccionado = document.getElementById('tipoCurso').value;
 
-    if (tipoCurso === "Ingles en 100 Dias") {
+    if (tipoCursoSeleccionado === "Ingles en 100 Dias") {
       document.getElementById('pdfSubtituloHeader').innerText = "INGLES EN 100 DÍAS / AMERICAN BOOK GROUP";
       document.getElementById('pdfTextoClasesEnVivo').style.display = 'none';
       document.getElementById('pdfClausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $50 por los gastos ocasionados a la editorial.";
