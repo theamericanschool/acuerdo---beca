@@ -374,6 +374,11 @@
       if (data && data.status === "SUCCESS") {
         sessionStorage.setItem('asesor_autenticado', data.nombre);
         document.getElementById('representante').value = data.nombre.toUpperCase();
+        
+        if (data.registros && Array.isArray(data.registros)) {
+          registrosBaseDatos = data.registros;
+        }
+
         mostrarDashboard(data.nombre);
       } else {
         err.innerText = (data && data.message) ? data.message : "Usuario o contraseña incorrectos.";
@@ -397,7 +402,12 @@
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboardContainer').style.display = 'block';
     document.getElementById('userBadge').innerText = "👤 " + nombreAsesor;
-    cargarHistorialDesdeNube();
+    
+    if (registrosBaseDatos.length > 0) {
+      filtrarPorCodigoCRM();
+    } else {
+      cargarHistorialDesdeNube();
+    }
   }
 
   function cerrarSesion() {
@@ -470,19 +480,28 @@
     return str;
   }
 
-  async function cargarHistorialDesdeNube() {
+  function cargarHistorialDesdeNube() {
     const tableBody = document.getElementById('historyTable');
     tableBody.innerHTML = '<tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>';
 
-    try {
-      const response = await fetch(SCRIPT_URL);
-      const data = await response.json();
-      
+    const callbackName = 'listCallback_' + Math.round(100000 * Math.random());
+
+    window[callbackName] = function(data) {
+      delete window[callbackName];
+      if (document.body.contains(scriptList)) {
+        document.body.removeChild(scriptList);
+      }
       registrosBaseDatos = Array.isArray(data) ? data : [];
       filtrarPorCodigoCRM();
-    } catch (e) {
+    };
+
+    const scriptList = document.createElement('script');
+    scriptList.src = `${SCRIPT_URL}?callback=${callbackName}`;
+    scriptList.onerror = function() {
       tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets.</td></tr>';
-    }
+    };
+
+    document.body.appendChild(scriptList);
   }
 
   function renderizarTabla() {
@@ -547,7 +566,6 @@
     actualizarControlesPaginacion(totalRegistros, inicio + 1, fin);
   }
 
-  // FUNCIÓN PARA RECREAR EL ENLACE EXPIRADO AUTOMÁTICAMENTE
   function recrearEnlaceExpira(codigo) {
     const data = registrosBaseDatos.find(i => (i.codigoEstudiante || "").toUpperCase() === codigo.toUpperCase());
     if (!data) return alert("Registro no encontrado.");
