@@ -348,7 +348,7 @@
     document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
   });
 
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnLogin');
     const err = document.getElementById('loginError');
@@ -360,12 +360,18 @@
     const usuario = document.getElementById('loginUser').value.trim().toLowerCase();
     const clave = document.getElementById('loginPass').value.trim();
 
-    const callbackName = 'loginCallback_' + Math.round(100000 * Math.random());
-    
-    window[callbackName] = function(data) {
-      delete window[callbackName];
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+    const loginUrl = `${SCRIPT_URL}?accion=LOGIN&usuario=${encodeURIComponent(usuario)}&clave=${encodeURIComponent(clave)}`;
+
+    try {
+      const response = await fetch(loginUrl, { method: 'GET', redirect: 'follow' });
+      const textResult = await response.text();
+
+      let data;
+      try {
+        const jsonMatch = textResult.match(/loginCallback_\d+\((.*)\);?/) || textResult.match(/\((.*)\)/);
+        data = jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(textResult);
+      } catch (parseErr) {
+        data = JSON.parse(textResult);
       }
 
       btn.disabled = false;
@@ -379,18 +385,41 @@
         err.innerText = (data && data.message) ? data.message : "Usuario o contraseña incorrectos.";
         err.style.display = 'block';
       }
-    };
 
-    const script = document.createElement('script');
-    script.src = `${SCRIPT_URL}?accion=LOGIN&usuario=${encodeURIComponent(usuario)}&clave=${encodeURIComponent(clave)}&callback=${callbackName}`;
-    script.onerror = function() {
-      btn.disabled = false;
-      btn.innerText = "🔒 Iniciar Sesión";
-      err.innerText = "Error de conexión con el servidor.";
-      err.style.display = 'block';
-    };
+    } catch (fetchErr) {
+      const callbackName = 'loginCallback_' + Math.round(100000 * Math.random());
+      
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        if (document.body.contains(scriptFallback)) {
+          document.body.removeChild(scriptFallback);
+        }
 
-    document.body.appendChild(script);
+        btn.disabled = false;
+        btn.innerText = "🔒 Iniciar Sesión";
+
+        if (data && data.status === "SUCCESS") {
+          sessionStorage.setItem('asesor_autenticado', data.nombre);
+          document.getElementById('representante').value = data.nombre.toUpperCase();
+          mostrarDashboard(data.nombre);
+        } else {
+          err.innerText = (data && data.message) ? data.message : "Usuario o contraseña incorrectos.";
+          err.style.display = 'block';
+        }
+      };
+
+      const scriptFallback = document.createElement('script');
+      scriptFallback.src = `${SCRIPT_URL}?accion=LOGIN&usuario=${encodeURIComponent(usuario)}&clave=${encodeURIComponent(clave)}&callback=${callbackName}`;
+      
+      scriptFallback.onerror = function() {
+        btn.disabled = false;
+        btn.innerText = "🔒 Iniciar Sesión";
+        err.innerText = "El servidor de Google está iniciando. Por favor presiona 'Iniciar Sesión' nuevamente.";
+        err.style.display = 'block';
+      };
+
+      document.body.appendChild(scriptFallback);
+    }
   });
 
   function mostrarDashboard(nombreAsesor) {
