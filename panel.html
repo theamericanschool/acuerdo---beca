@@ -499,28 +499,47 @@
     return str;
   }
 
-  function cargarHistorialDesdeNube() {
+  // LECTURA DIRECTA VÍA FETCH CON RESPALDO A JSONP (RESUELVE INCONSISTENCIAS DE CONEXIÓN)
+  async function cargarHistorialDesdeNube() {
     const tableBody = document.getElementById('historyTable');
     tableBody.innerHTML = '<tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>';
 
-    const callbackName = 'listCallback_' + Math.round(100000 * Math.random());
+    try {
+      const response = await fetch(SCRIPT_URL, { method: 'GET', redirect: 'follow' });
+      const text = await response.text();
 
-    window[callbackName] = function(data) {
-      delete window[callbackName];
-      if (document.body.contains(scriptList)) {
-        document.body.removeChild(scriptList);
+      let data;
+      try {
+        const jsonMatch = text.match(/listCallback_\d+\((.*)\);?/) || text.match(/\((.*)\)/);
+        data = jsonMatch ? JSON.parse(jsonMatch[1]) : JSON.parse(text);
+      } catch(e) {
+        data = JSON.parse(text);
       }
+
       registrosBaseDatos = Array.isArray(data) ? data : [];
       filtrarPorCodigoCRM();
-    };
 
-    const scriptList = document.createElement('script');
-    scriptList.src = `${SCRIPT_URL}?callback=${callbackName}`;
-    scriptList.onerror = function() {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets.</td></tr>';
-    };
+    } catch (errFetch) {
+      // Respaldo por JSONP inyectado
+      const callbackName = 'listCallback_' + Math.round(100000 * Math.random());
 
-    document.body.appendChild(scriptList);
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        if (document.body.contains(scriptList)) {
+          document.body.removeChild(scriptList);
+        }
+        registrosBaseDatos = Array.isArray(data) ? data : [];
+        filtrarPorCodigoCRM();
+      };
+
+      const scriptList = document.createElement('script');
+      scriptList.src = `${SCRIPT_URL}?callback=${callbackName}`;
+      scriptList.onerror = function() {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444;">Error de conexión con Google Sheets. Intenta hacer clic en "🔄 Actualizar Nube".</td></tr>';
+      };
+
+      document.body.appendChild(scriptList);
+    }
   }
 
   function renderizarTabla() {
