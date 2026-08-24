@@ -173,6 +173,12 @@
 
   const tipoCurso = getParam('tipoCurso', 'La Escuela del Ingles');
 
+  let valorInscripcionRaw = getParam('valorInscripcion', '$259.00 USD').trim();
+  let numValor = parseFloat(valorInscripcionRaw.replace(/[^0-9.]/g, ''));
+  if (!isNaN(numValor)) {
+    valorInscripcionRaw = "$" + numValor.toFixed(2) + " USD";
+  }
+
   const datosEstudiante = {
     tipoCurso: tipoCurso,
     nombre: getParam('nombre', 'Estudiante de Prueba'),
@@ -180,7 +186,7 @@
     email: getParam('email', ''),
     direccion: getParam('direccion', 'No especificada'),
     fechaAcuerdo: formatearFechaLimpia(getParam('fechaAcuerdo', new Date())),
-    valorInscripcion: getParam('valorInscripcion', '$ 259.00 USD'),
+    valorInscripcion: valorInscripcionRaw,
     fechaPago: formatearFechaLimpia(getParam('fechaPago', '')),
     representante: getParam('representante', 'Asesor Educativo'),
     codigoEstudiante: getParam('codigoEstudiante', 'ABG-000000')
