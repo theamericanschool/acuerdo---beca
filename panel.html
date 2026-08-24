@@ -185,8 +185,8 @@
           <input type="text" id="telefono" placeholder="Ej. +13057724132" required>
         </div>
         <div class="form-group">
-          <label>Correo Electrónico:</label>
-          <input type="email" id="email" class="lowercase-input" placeholder="ejemplo@gmail.com" required oninput="this.value = this.value.toLowerCase()">
+          <label>Correo Electrónico (Opcional):</label>
+          <input type="email" id="email" class="lowercase-input" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()">
         </div>
         <div class="form-group">
           <label>Dirección:</label>
@@ -264,7 +264,7 @@
   <div class="pdf-header">
     <img src="logo.png" class="pdf-logo"><br>
     <h1>ACUERDO DE RESERVA Y ACTIVACIÓN DE BENEFICIO EDUCATIVO</h1>
-    <h2>LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP</h2>
+    <h2 id="pdfSubtituloHeader">LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP</h2>
   </div>
 
   <p>Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación.</p>
@@ -278,20 +278,20 @@
 
   <div class="pdf-section-title">2. BENEFICIO OTORGADO</div>
   <p>El beneficiario ha sido seleccionado para participar en el programa de becas <strong>“Latinos Bilingües”</strong>, mediante el cual recibe una cobertura económica equivalente al <strong>90% del costo total del programa educativo durante 12 meses</strong>, de acuerdo con las condiciones informadas.</p>
-  <p id="pdfClasesEnVivo">El beneficio incluye el acceso al programa educativo, plataforma de estudio, clases en vivo, recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
+  <p id="pdfClasesEnVivo">El beneficio incluye el acceso al programa educativo, plataforma de estudio, <span id="pdfTextoClasesEnVivo">clases en vivo, </span>recursos y materiales de aprendizaje, evaluaciones y demás componentes establecidos por la institución.</p>
   <table class="data-table">
     <tr><td><strong>Valor de inscripción a cargo del beneficiario:</strong> <span id="pdfValor">-</span></td></tr>
   </table>
 
   <div class="pdf-section-title">3. RESERVA Y COMPROMISO</div>
-  <p>El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción.</p>
+  <p>El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="pdfClausulaSancion">, de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.</span></p>
   <table class="data-table">
     <tr><td><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span></td></tr>
   </table>
   <p>El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
 
-  <div class="pdf-section-title">4. COMPROMISOS DE LA ESCUELA</div>
-  <p>LA ESCUELA AMERICANA DEL INGLÉS se compromete a:</p>
+  <div class="pdf-section-title" id="pdfTituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
+  <p><span id="pdfEntidadCompromisos">LA ESCUELA AMERICANA DEL INGLÉS</span> se compromete a:</p>
   <ul>
     <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo.</li>
     <li>Respetar el beneficio y el valor de inscripción aquí establecidos.</li>
@@ -310,7 +310,7 @@
   </table>
 
   <p style="font-size: 8px; color: #555; margin-top: 4px; text-align: justify;">
-    LA ESCUELA AMERICANA DEL INGLES / AMERICAN BOOK GROUP, no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas o externas ajenas al control razonable de la institución.<br>
+    <span id="pdfEntidadDisclaimer">LA ESCUELA AMERICANA DEL INGLES / AMERICAN BOOK GROUP</span>, no se hace responsable por la imposibilidad de activar o mantener la reserva cuando esta derive del incumplimiento de las condiciones asumidas por el beneficiario, de información incorrecta proporcionada por este, de su falta de respuesta o de circunstancias técnicas o externas ajenas al control razonable de la institución.<br>
     La institución garantiza las condiciones del beneficio expresamente establecidas en este acuerdo, pero no garantiza resultados académicos, laborales, económicos o personales específicos, los cuales pueden depender de la participación, dedicación y circunstancias particulares del estudiante.
   </p>
 
@@ -374,11 +374,6 @@
       if (data && data.status === "SUCCESS") {
         sessionStorage.setItem('asesor_autenticado', data.nombre);
         document.getElementById('representante').value = data.nombre.toUpperCase();
-        
-        if (data.registros && Array.isArray(data.registros)) {
-          registrosBaseDatos = data.registros;
-        }
-
         mostrarDashboard(data.nombre);
       } else {
         err.innerText = (data && data.message) ? data.message : "Usuario o contraseña incorrectos.";
@@ -402,12 +397,7 @@
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboardContainer').style.display = 'block';
     document.getElementById('userBadge').innerText = "👤 " + nombreAsesor;
-    
-    if (registrosBaseDatos.length > 0) {
-      filtrarPorCodigoCRM();
-    } else {
-      cargarHistorialDesdeNube();
-    }
+    cargarHistorialDesdeNube();
   }
 
   function cerrarSesion() {
@@ -713,9 +703,27 @@
     const data = registrosBaseDatos.find(i => (i.codigoEstudiante || "").toUpperCase() === codigo.toUpperCase());
     if (!data) return alert("Registro no encontrado.");
 
+    const tipoCurso = document.getElementById('tipoCurso').value;
+
+    if (tipoCurso === "Ingles en 100 Dias") {
+      document.getElementById('pdfSubtituloHeader').innerText = "INGLES EN 100 DÍAS / AMERICAN BOOK GROUP";
+      document.getElementById('pdfTextoClasesEnVivo').style.display = 'none';
+      document.getElementById('pdfClausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $50 por los gastos ocasionados a la editorial.";
+      document.getElementById('pdfTituloCompromisos').innerText = "4. COMPROMISOS DE LA EDITORIAL";
+      document.getElementById('pdfEntidadCompromisos').innerText = "INGLÉS EN 100 DÍAS";
+      document.getElementById('pdfEntidadDisclaimer').innerText = "INGLES EN 100 DÍAS/AMERICAN BOOK GROUP";
+    } else {
+      document.getElementById('pdfSubtituloHeader').innerText = "LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP";
+      document.getElementById('pdfTextoClasesEnVivo').style.display = 'inline';
+      document.getElementById('pdfClausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.";
+      document.getElementById('pdfTituloCompromisos').innerText = "4. COMPROMISOS DE LA ESCUELA";
+      document.getElementById('pdfEntidadCompromisos').innerText = "LA ESCUELA AMERICANA DEL INGLÉS";
+      document.getElementById('pdfEntidadDisclaimer').innerText = "LA ESCUELA AMERICANA DEL INGLES/AMERICAN BOOK GROUP";
+    }
+
     document.getElementById('pdfNombre').innerText = data.nombre;
     document.getElementById('pdfTelefono').innerText = data.telefono;
-    document.getElementById('pdfEmail').innerText = data.email;
+    document.getElementById('pdfEmail').innerText = data.email || 'Sin correo registrado';
     document.getElementById('pdfDireccion').innerText = data.direccion;
     document.getElementById('pdfFechaAcuerdo').innerText = formatearFechaLimpia(data.fechaRegistro);
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
