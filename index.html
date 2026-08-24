@@ -40,7 +40,6 @@
     .signed-badge-title { font-size: 15px; font-weight: bold; color: #15803d; text-transform: uppercase; margin-bottom: 5px; }
     .signed-badge-sub { font-size: 12px; color: #166534; margin: 0; }
 
-    /* TARJETA DE EXPIRACIÓN */
     .expired-card {
       background: #fef2f2;
       border: 2px solid #ef4444;
@@ -224,7 +223,6 @@
     });
   }
 
-  // VALIDACIÓN DE 10 MINUTOS Y ESTADO DE FIRMA AL CARGAR
   window.addEventListener('load', () => {
     if (isAdminView) return;
 
@@ -242,7 +240,6 @@
       } else if (data && data.estatus === "EXPIRADO") {
         bloquearComoExpirado();
       } else if (data && data.fechaCreacion) {
-        // VALIDAR TIEMPO DE 10 MINUTOS
         const fechaCreacion = new Date(data.fechaCreacion);
         const ahora = new Date();
         const diferenciaMinutos = (ahora - fechaCreacion) / (1000 * 60);
