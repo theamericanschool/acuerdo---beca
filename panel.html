@@ -293,6 +293,7 @@
   <div class="pdf-section-title" id="pdfTituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
   <p><span id="pdfEntidadCompromisos">LA ESCUELA AMERICANA DEL INGLÉS</span> se compromete a:</p>
   <ul>
+    <li><strong>Envío de la enciclopedia de estudio en físico (Sin costo adicional).</strong></li>
     <li>Mantener registrada la reserva del beneficio conforme a las condiciones de este acuerdo.</li>
     <li>Respetar el beneficio y el valor de inscripción aquí establecidos.</li>
     <li>Proporcionar al beneficiario la información y los medios necesarios para completar su inscripción.</li>
@@ -499,7 +500,6 @@
     return str;
   }
 
-  // LECTURA DIRECTA VÍA FETCH CON RESPALDO A JSONP (RESUELVE INCONSISTENCIAS DE CONEXIÓN)
   async function cargarHistorialDesdeNube() {
     const tableBody = document.getElementById('historyTable');
     tableBody.innerHTML = '<tr id="loadingRow"><td colspan="6" style="text-align: center; color: #94a3b8;">⏳ Cargando registros desde la nube...</td></tr>';
@@ -520,7 +520,6 @@
       filtrarPorCodigoCRM();
 
     } catch (errFetch) {
-      // Respaldo por JSONP inyectado
       const callbackName = 'listCallback_' + Math.round(100000 * Math.random());
 
       window[callbackName] = function(data) {
