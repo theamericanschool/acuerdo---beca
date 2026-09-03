@@ -89,7 +89,7 @@
 
     <div class="section-title">3. RESERVA Y COMPROMISO</div>
     <p class="text-block">El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="clausulaSancion"></span>.</p>
-    <div class="data-grid">
+    <div class="data-grid" style="grid-template-columns: 1fr;">
       <p><strong>Fecha acordada para realizar el pago:</strong> <span id="fechaPago">-</span></p>
     </div>
     <p class="text-block">El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
@@ -121,7 +121,7 @@
     <form id="signForm" style="margin-top: 20px;">
       <label style="font-size: 13px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
         <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
-        <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí established.</span>
+        <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
       </label>
       <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
     </form>
@@ -150,26 +150,36 @@
     document.getElementById('adminNotice').style.display = 'block';
   }
 
-  function formatearFechaLimpia(fechaInput) {
-    if (!fechaInput) return "-";
+  const mesesEng = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+  function parseFechaObjeto(fechaInput) {
+    if (!fechaInput) return new Date();
     let str = fechaInput.toString().trim();
-    
     if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
-      let parts = str.split('T')[0].split('-');
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      let p = str.split('T')[0].split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
     }
-
     str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
-
     let d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      let day = String(d.getDate()).padStart(2, '0');
-      let month = String(d.getMonth() + 1).padStart(2, '0');
-      let year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
+    return isNaN(d.getTime()) ? new Date() : d;
+  }
 
-    return str.split('T')[0].split(' ')[0];
+  function formatearFechaEng(fechaInput) {
+    let d = parseFechaObjeto(fechaInput);
+    let day = String(d.getDate()).padStart(2, '0');
+    let month = mesesEng[d.getMonth()];
+    let year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
+  function formatearFechaConTexto(fechaInput) {
+    let d = parseFechaObjeto(fechaInput);
+    let abreviado = formatearFechaEng(fechaInput);
+    
+    let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
+
+    return `${abreviado} (${textoEscrito})`;
   }
 
   const tipoCurso = getParam('tipoCurso', 'La Escuela del Ingles');
@@ -186,9 +196,9 @@
     telefono: getParam('telefono', '0000000000'),
     email: getParam('email', ''),
     direccion: getParam('direccion', 'No especificada'),
-    fechaAcuerdo: formatearFechaLimpia(getParam('fechaAcuerdo', new Date())),
+    fechaAcuerdo: formatearFechaEng(getParam('fechaAcuerdo', new Date())),
     valorInscripcion: valorInscripcionRaw,
-    fechaPago: formatearFechaLimpia(getParam('fechaPago', '')),
+    fechaPago: formatearFechaConTexto(getParam('fechaPago', '')),
     representante: getParam('representante', 'Asesor Educativo'),
     codigoEstudiante: getParam('codigoEstudiante', 'ABG-000000')
   };
