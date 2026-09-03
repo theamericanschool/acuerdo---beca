@@ -335,6 +335,38 @@
   let paginaActual = 1;
   const registrosPorPagina = 20;
 
+  const mesesEng = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+  function parseFechaObjeto(fechaInput) {
+    if (!fechaInput) return new Date();
+    let str = fechaInput.toString().trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      let p = str.split('T')[0].split('-');
+      return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+    }
+    str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
+    let d = new Date(str);
+    return isNaN(d.getTime()) ? new Date() : d;
+  }
+
+  function formatearFechaEng(fechaInput) {
+    let d = parseFechaObjeto(fechaInput);
+    let day = String(d.getDate()).padStart(2, '0');
+    let month = mesesEng[d.getMonth()];
+    let year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
+  function formatearFechaConTexto(fechaInput) {
+    let d = parseFechaObjeto(fechaInput);
+    let abreviado = formatearFechaEng(fechaInput);
+    
+    let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
+
+    return `${abreviado} (${textoEscrito})`;
+  }
+
   function obtenerFechaMas7Dias() {
     const hoy = new Date();
     hoy.setDate(hoy.getDate() + 7);
@@ -456,47 +488,18 @@
     }
   }
 
-  function formatearFechaLimpia(fechaInput) {
-    if (!fechaInput) return "-";
-    let str = fechaInput.toString().trim();
-    
-    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
-      let parts = str.split('T')[0].split('-');
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
-    str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
-
-    let d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      let day = String(d.getDate()).padStart(2, '0');
-      let month = String(d.getMonth() + 1).padStart(2, '0');
-      let year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
-
-    return str.split('T')[0].split(' ')[0];
-  }
-
   function formatearFechaHoraLimpia(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
-
     str = str.replace(/\([^)]*\)/g, '').replace(/GMT[+-]\d{4}/g, '').trim();
-
     let d = new Date(str);
     if (!isNaN(d.getTime())) {
-      return d.toLocaleString("es-ES", {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
+      let day = String(d.getDate()).padStart(2, '0');
+      let month = mesesEng[d.getMonth()];
+      let year = d.getFullYear();
+      let time = d.toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      return `${day}-${month}-${year} ${time}`;
     }
-
     return str;
   }
 
@@ -772,9 +775,9 @@
     document.getElementById('pdfTelefono').innerText = data.telefono;
     document.getElementById('pdfEmail').innerText = data.email || 'Sin correo registrado';
     document.getElementById('pdfDireccion').innerText = data.direccion;
-    document.getElementById('pdfFechaAcuerdo').innerText = formatearFechaLimpia(data.fechaRegistro);
+    document.getElementById('pdfFechaAcuerdo').innerText = formatearFechaEng(data.fechaRegistro);
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
-    document.getElementById('pdfFechaPago').innerText = formatearFechaLimpia(data.fechaPago);
+    document.getElementById('pdfFechaPago').innerText = formatearFechaConTexto(data.fechaPago);
     document.getElementById('pdfRepresentante').innerText = data.representante;
     document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
 
