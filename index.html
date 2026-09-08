@@ -186,8 +186,12 @@
   }
 
   function formatearFechaConTexto(fechaInput) {
-    let d = parseFechaObjeto(fechaInput);
-    let abreviado = formatearFechaEng(fechaInput);
+    if (!fechaInput) return "-";
+    let str = fechaInput.toString().trim();
+    if (str.includes("(")) return str;
+
+    let d = parseFechaObjeto(str);
+    let abreviado = formatearFechaEng(str);
     let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
     return `${abreviado} (${textoEscrito})`;
@@ -197,7 +201,6 @@
 
   window.addEventListener('load', () => {
     if (!idCRM) {
-      // Fallback si viene en la URL estilo antiguo con todos los parámetros
       cargarDatosDesdeURL();
       return;
     }
