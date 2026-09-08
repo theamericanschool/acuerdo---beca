@@ -70,7 +70,7 @@
 
     .result-card { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin-top: 20px; display: none; }
     .result-card h3 { margin: 0 0 10px 0; font-size: 13px; color: #0369a1; text-transform: uppercase; }
-    .url-display { width: 100%; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #334155; margin-bottom: 12px; }
+    .url-display { width: 100%; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; color: #0369a1; margin-bottom: 12px; }
     
     .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
     .btn-action { flex: 1; padding: 10px 15px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; min-width: 160px; }
@@ -207,13 +207,13 @@
       </div>
 
       <div class="button-group-form">
-        <button type="submit" class="btn-submit">⚡ Generar Enlace Único</button>
+        <button type="submit" class="btn-submit">⚡ Generar Enlace Corto</button>
         <button type="button" class="btn-clear" onclick="limpiarFormulario()">🧹 Limpiar Formulario</button>
       </div>
     </form>
 
     <div class="result-card" id="resultCard">
-      <h3>Enlace Listo para Enviar al Cliente:</h3>
+      <h3>Enlace Corto Listo para Enviar al Cliente:</h3>
       <input type="text" class="url-display" id="finalUrl" readonly>
       <div class="action-buttons">
         <button class="btn-action btn-copy" onclick="copiarLink()">📋 Copiar Enlace</button>
@@ -328,7 +328,7 @@
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-mLUOndgFGGvuPiIcE9j7fXCUIuMEpXxcb292_xppia47qZQDk8RGK2k4GAmQpGfDPw/exec";
-  const BASE_URL = "https://theamericanschool.github.io/acuerdo---beca/";
+  const BASE_URL = "https://acuerdo.americanbookgroup.com/";
   
   let registrosBaseDatos = [];
   let registrosFiltrados = [];
@@ -360,10 +360,8 @@
   function formatearFechaConTexto(fechaInput) {
     let d = parseFechaObjeto(fechaInput);
     let abreviado = formatearFechaEng(fechaInput);
-    
     let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
-
     return `${abreviado} (${textoEscrito})`;
   }
 
@@ -560,18 +558,7 @@
     const paginados = registrosFiltrados.slice(inicio, fin);
 
     paginados.forEach(item => {
-      const params = new URLSearchParams({
-        nombre: item.nombre || "", 
-        telefono: item.telefono || "", 
-        email: item.email || "",
-        direccion: item.direccion || "", 
-        valorInscripcion: item.valorInscripcion || "",
-        fechaPago: item.fechaPago || "", 
-        representante: item.representante || "", 
-        codigoEstudiante: item.codigoEstudiante || ""
-      });
-
-      const fullLink = `${BASE_URL}?${params.toString()}`;
+      const fullLink = `${BASE_URL}?id=${encodeURIComponent(item.codigoEstudiante)}`;
       const previewLink = fullLink + "&modo=admin";
 
       let estatusCss = "status-creado";
@@ -699,29 +686,20 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    const params = new URLSearchParams({
-      tipoCurso,
-      nombre,
-      telefono,
-      email,
-      direccion,
-      valorInscripcion,
-      fechaPago,
-      representante,
-      codigoEstudiante
-    });
-
-    const fullLink = `${BASE_URL}?${params.toString()}`;
+    // ENLACE CORTO POR CÓDIGO CRM
+    const fullLink = `${BASE_URL}?id=${encodeURIComponent(codigoEstudiante)}`;
 
     document.getElementById('finalUrl').value = fullLink;
     document.getElementById('resultCard').style.display = 'block';
 
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
-    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (${tipoCurso})* de La Escuela del Inglés.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
+    
+    // MENSAJE DE WHATSAPP SIN MENCIONES DUPLICADAS
+    const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (${tipoCurso})*.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
     const datosGuardar = {
-      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, accion: "CREAR"
+      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, tipoCurso, accion: "CREAR"
     };
 
     fetch(SCRIPT_URL, {
@@ -746,14 +724,14 @@
     const copyText = document.getElementById("finalUrl");
     copyText.select();
     document.execCommand("copy");
-    alert("¡Enlace copiado exitosamente al portapapeles!");
+    alert("¡Enlace corto copiado exitosamente al portapapeles!");
   }
 
   function descargarPDFAdministrativo(codigo) {
     const data = registrosBaseDatos.find(i => (i.codigoEstudiante || "").toUpperCase() === codigo.toUpperCase());
     if (!data) return alert("Registro no encontrado.");
 
-    const tipoCursoSeleccionado = document.getElementById('tipoCurso').value;
+    const tipoCursoSeleccionado = data.tipoCurso || document.getElementById('tipoCurso').value;
 
     if (tipoCursoSeleccionado === "Ingles en 100 Dias") {
       document.getElementById('pdfSubtituloHeader').innerText = "INGLES EN 100 DÍAS / AMERICAN BOOK GROUP";
