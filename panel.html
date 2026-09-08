@@ -20,7 +20,6 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
 
-    /* PANTALLA LOGIN */
     .login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 85vh; }
     .login-card { background: var(--card-bg); padding: 35px 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 400px; border-top: 6px solid var(--primary); text-align: center; }
     .login-card img { height: 50px; margin-bottom: 15px; }
@@ -31,7 +30,6 @@
     .btn-login:hover { background: var(--primary-dark); }
     .login-error { color: #ef4444; font-size: 12px; font-weight: bold; margin-top: 10px; display: none; text-align: center; }
 
-    /* DASHBOARD */
     .dashboard-container { max-width: 980px; margin: 0 auto; display: none; }
     
     .top-bar { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 6px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
@@ -358,8 +356,12 @@
   }
 
   function formatearFechaConTexto(fechaInput) {
-    let d = parseFechaObjeto(fechaInput);
-    let abreviado = formatearFechaEng(fechaInput);
+    if (!fechaInput) return "-";
+    let str = fechaInput.toString().trim();
+    if (str.includes("(")) return str;
+
+    let d = parseFechaObjeto(str);
+    let abreviado = formatearFechaEng(str);
     let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
     return `${abreviado} (${textoEscrito})`;
@@ -686,7 +688,6 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
-    // ENLACE CORTO POR CÓDIGO CRM
     const fullLink = `${BASE_URL}?id=${encodeURIComponent(codigoEstudiante)}`;
 
     document.getElementById('finalUrl').value = fullLink;
@@ -694,7 +695,6 @@
 
     const cleanPhone = telefono.replace(/[^0-9]/g, '');
     
-    // MENSAJE DE WHATSAPP SIN MENCIONES DUPLICADAS
     const wspMessage = `Hola ${nombre}, un gusto saludarte. Adjunto el enlace oficial de tu *Acuerdo de Reserva y Activación de Beneficio Educativo (${tipoCurso})*.\n\nPor favor ingresa aquí para confirmar tus datos y realizar la firma digital:\n${fullLink}`;
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
