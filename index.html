@@ -52,6 +52,14 @@
     .expired-title { font-size: 16px; font-weight: bold; color: #dc2626; text-transform: uppercase; margin-bottom: 8px; }
     .expired-sub { font-size: 13px; color: #991b1b; margin: 0; line-height: 1.5; }
 
+    .loading-spinner {
+      text-align: center;
+      padding: 40px 10px;
+      font-size: 14px;
+      color: #004085;
+      font-weight: bold;
+    }
+
     @media (max-width: 480px) { .data-grid { grid-template-columns: 1fr; } .logo-img { max-width: 190px; } }
   </style>
 </head>
@@ -68,7 +76,11 @@
     <h2 id="subtituloHeader">LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP</h2>
   </div>
 
-  <div id="contractBody">
+  <div id="loadingBox" class="loading-spinner">
+    ⏳ Cargando tu acuerdo personalizado... Por favor espera un momento.
+  </div>
+
+  <div id="contractBody" style="display: none;">
     <p class="text-block">Por medio del presente acuerdo se deja constancia de la asignación y reserva del beneficio educativo otorgado al beneficiario identificado a continuación, así como de las condiciones para su posterior activación.</p>
 
     <div class="section-title">1. DATOS DEL BENEFICIARIO</div>
@@ -145,6 +157,7 @@
   const getParam = (param, defaultText) => urlParams.get(param) || defaultText;
 
   const isAdminView = urlParams.get('modo') === 'admin';
+  const idCRM = getParam('id', getParam('codigoEstudiante', ''));
 
   if (isAdminView) {
     document.getElementById('adminNotice').style.display = 'block';
@@ -175,72 +188,107 @@
   function formatearFechaConTexto(fechaInput) {
     let d = parseFechaObjeto(fechaInput);
     let abreviado = formatearFechaEng(fechaInput);
-    
     let opcionesTexto = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     let textoEscrito = d.toLocaleDateString('es-ES', opcionesTexto);
-
     return `${abreviado} (${textoEscrito})`;
   }
 
-  const tipoCurso = getParam('tipoCurso', 'La Escuela del Ingles');
+  let datosEstudiante = {};
 
-  let valorInscripcionRaw = getParam('valorInscripcion', '$259.00 USD').trim();
-  let numValor = parseFloat(valorInscripcionRaw.replace(/[^0-9.]/g, ''));
-  if (!isNaN(numValor)) {
-    valorInscripcionRaw = "$" + numValor.toFixed(2) + " USD";
-  }
+  window.addEventListener('load', () => {
+    if (!idCRM) {
+      // Fallback si viene en la URL estilo antiguo con todos los parámetros
+      cargarDatosDesdeURL();
+      return;
+    }
 
-  const datosEstudiante = {
-    tipoCurso: tipoCurso,
-    nombre: getParam('nombre', 'Estudiante de Prueba'),
-    telefono: getParam('telefono', '0000000000'),
-    email: getParam('email', ''),
-    direccion: getParam('direccion', 'No especificada'),
-    fechaAcuerdo: formatearFechaEng(getParam('fechaAcuerdo', new Date())),
-    valorInscripcion: valorInscripcionRaw,
-    fechaPago: formatearFechaConTexto(getParam('fechaPago', '')),
-    representante: getParam('representante', 'Asesor Educativo'),
-    codigoEstudiante: getParam('codigoEstudiante', 'ABG-000000')
-  };
+    const callbackData = 'getStudent_' + Math.round(100000 * Math.random());
+    window[callbackData] = function(data) {
+      delete window[callbackData];
+      if (document.body.contains(scriptGet)) {
+        document.body.removeChild(scriptGet);
+      }
 
-  if (tipoCurso === "Ingles en 100 Dias") {
-    document.getElementById('subtituloHeader').innerText = "INGLES EN 100 DÍAS / AMERICAN BOOK GROUP";
-    document.getElementById('clasesEnVivoTexto').style.display = 'none';
-    document.getElementById('clausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $50 por los gastos ocasionados a la editorial.";
-    document.getElementById('tituloCompromisos').innerText = "4. COMPROMISOS DE LA EDITORIAL";
-    document.getElementById('nombreEntidadCompromisos').innerText = "INGLÉS EN 100 DÍAS";
-    document.getElementById('entidadDisclaimer').innerText = "INGLES EN 100 DÍAS/AMERICAN BOOK GROUP";
-  } else {
-    document.getElementById('subtituloHeader').innerText = "LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP";
-    document.getElementById('clasesEnVivoTexto').style.display = 'inline';
-    document.getElementById('clausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.";
-    document.getElementById('tituloCompromisos').innerText = "4. COMPROMISOS DE LA ESCUELA";
-    document.getElementById('nombreEntidadCompromisos').innerText = "LA ESCUELA AMERICANA DEL INGLÉS";
-    document.getElementById('entidadDisclaimer').innerText = "LA ESCUELA AMERICANA DEL INGLES/AMERICAN BOOK GROUP";
-  }
+      if (data && !data.error) {
+        poblarInterfaz(data);
+      } else {
+        cargarDatosDesdeURL();
+      }
+    };
 
-  document.getElementById('nombre').innerText = datosEstudiante.nombre;
-  document.getElementById('telefono').innerText = datosEstudiante.telefono;
-  document.getElementById('email').innerText = datosEstudiante.email || 'Sin correo registrado';
-  document.getElementById('direccion').innerText = datosEstudiante.direccion;
-  document.getElementById('fechaAcuerdo').innerText = datosEstudiante.fechaAcuerdo;
-  document.getElementById('valorInscripcion').innerText = datosEstudiante.valorInscripcion;
-  document.getElementById('fechaPago').innerText = datosEstudiante.fechaPago;
-  document.getElementById('representante').innerText = datosEstudiante.representante;
-  document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
+    const scriptGet = document.createElement('script');
+    scriptGet.src = `${SCRIPT_URL}?accion=OBTENER_DATOS_ESTUDIANTE&codigo=${encodeURIComponent(idCRM)}&callback=${callbackData}`;
+    
+    scriptGet.onerror = function() {
+      cargarDatosDesdeURL();
+    };
 
-  function enviarAGoogle(datos) {
-    if (isAdminView) return;
-    const formBody = new URLSearchParams(datos).toString();
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formBody,
-      mode: 'no-cors'
+    document.body.appendChild(scriptGet);
+  });
+
+  function cargarDatosDesdeURL() {
+    poblarInterfaz({
+      tipoCurso: getParam('tipoCurso', 'La Escuela del Ingles'),
+      nombre: getParam('nombre', 'Estudiante de Prueba'),
+      telefono: getParam('telefono', '0000000000'),
+      email: getParam('email', ''),
+      direccion: getParam('direccion', 'No especificada'),
+      fechaAcuerdo: getParam('fechaAcuerdo', new Date()),
+      valorInscripcion: getParam('valorInscripcion', '$259.00 USD'),
+      fechaPago: getParam('fechaPago', ''),
+      representante: getParam('representante', 'Asesor Educativo'),
+      codigoEstudiante: idCRM || 'ABG-000000'
     });
   }
 
-  window.addEventListener('load', () => {
+  function poblarInterfaz(data) {
+    document.getElementById('loadingBox').style.display = 'none';
+
+    datosEstudiante = {
+      tipoCurso: data.tipoCurso || 'La Escuela del Ingles',
+      nombre: data.nombre || '-',
+      telefono: data.telefono || '-',
+      email: data.email || '',
+      direccion: data.direccion || '-',
+      fechaAcuerdo: formatearFechaEng(data.fechaRegistro || new Date()),
+      valorInscripcion: data.valorInscripcion || '-',
+      fechaPago: formatearFechaConTexto(data.fechaPago || ''),
+      representante: data.representante || '-',
+      codigoEstudiante: data.codigoEstudiante || '-'
+    };
+
+    if (datosEstudiante.tipoCurso === "Ingles en 100 Dias") {
+      document.getElementById('subtituloHeader').innerText = "INGLES EN 100 DÍAS / AMERICAN BOOK GROUP";
+      document.getElementById('clasesEnVivoTexto').style.display = 'none';
+      document.getElementById('clausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $50 por los gastos ocasionados a la editorial.";
+      document.getElementById('tituloCompromisos').innerText = "4. COMPROMISOS DE LA EDITORIAL";
+      document.getElementById('nombreEntidadCompromisos').innerText = "INGLÉS EN 100 DÍAS";
+      document.getElementById('entidadDisclaimer').innerText = "INGLES EN 100 DÍAS/AMERICAN BOOK GROUP";
+    } else {
+      document.getElementById('subtituloHeader').innerText = "LA ESCUELA AMERICANA DEL INGLÉS / AMERICAN BOOK GROUP";
+      document.getElementById('clasesEnVivoTexto').style.display = 'inline';
+      document.getElementById('clausulaSancion').innerText = ", de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.";
+      document.getElementById('tituloCompromisos').innerText = "4. COMPROMISOS DE LA ESCUELA";
+      document.getElementById('nombreEntidadCompromisos').innerText = "LA ESCUELA AMERICANA DEL INGLÉS";
+      document.getElementById('entidadDisclaimer').innerText = "LA ESCUELA AMERICANA DEL INGLES/AMERICAN BOOK GROUP";
+    }
+
+    document.getElementById('nombre').innerText = datosEstudiante.nombre;
+    document.getElementById('telefono').innerText = datosEstudiante.telefono;
+    document.getElementById('email').innerText = datosEstudiante.email || 'Sin correo registrado';
+    document.getElementById('direccion').innerText = datosEstudiante.direccion;
+    document.getElementById('fechaAcuerdo').innerText = datosEstudiante.fechaAcuerdo;
+    document.getElementById('valorInscripcion').innerText = datosEstudiante.valorInscripcion;
+    document.getElementById('fechaPago').innerText = datosEstudiante.fechaPago;
+    document.getElementById('representante').innerText = datosEstudiante.representante;
+    document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
+
+    document.getElementById('contractBody').style.display = 'block';
+
+    verificarEstatusInicial();
+  }
+
+  function verificarEstatusInicial() {
     if (isAdminView) return;
 
     enviarAGoogle({ ...datosEstudiante, accion: "ABRIR" });
@@ -271,7 +319,18 @@
     const scriptStatus = document.createElement('script');
     scriptStatus.src = `${SCRIPT_URL}?accion=VERIFICAR_ESTATUS&codigoEstudiante=${encodeURIComponent(datosEstudiante.codigoEstudiante)}&callback=${callbackName}`;
     document.body.appendChild(scriptStatus);
-  });
+  }
+
+  function enviarAGoogle(datos) {
+    if (isAdminView) return;
+    const formBody = new URLSearchParams(datos).toString();
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody,
+      mode: 'no-cors'
+    });
+  }
 
   function bloquearComoFirmado(ip) {
     document.getElementById('contractBody').style.display = 'block';
