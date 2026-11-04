@@ -56,6 +56,16 @@
     .uppercase-input { text-transform: uppercase; }
     .lowercase-input { text-transform: lowercase; }
 
+    .parcial-fields-box {
+      grid-column: 1 / -1;
+      background: #eff6ff;
+      border: 1px dashed #3b82f6;
+      border-radius: 8px;
+      padding: 15px;
+      display: none;
+    }
+    .parcial-title { font-size: 12px; font-weight: bold; color: #1d4ed8; text-transform: uppercase; margin-bottom: 10px; }
+
     .search-box { display: flex; gap: 10px; margin-bottom: 15px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; }
     .search-box input { flex: 1; background: white; font-size: 13px; text-transform: uppercase; }
 
@@ -165,9 +175,10 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Modalidad de Curso:</label>
-          <select id="tipoCurso" required>
+          <select id="tipoCurso" required onchange="toggleModalidadPago()">
             <option value="La Escuela del Ingles" selected>La Escuela del Inglés</option>
             <option value="Ingles en 100 Dias">Inglés en 100 Días</option>
+            <option value="Pago Parcial">Pago Parcial (2 Cuotas)</option>
           </select>
         </div>
         <div class="form-group">
@@ -190,14 +201,32 @@
           <label>Dirección:</label>
           <input type="text" id="direccion" class="uppercase-input" placeholder="Ej. 132 ST SC 33053" required oninput="this.value = this.value.toUpperCase()">
         </div>
+        
+        <!-- CAMPOS ESTÁNDAR / 1RA CUOTA -->
         <div class="form-group">
-          <label>Valor Inscripción:</label>
+          <label id="lblValorInscripcion">Valor Inscripción Total:</label>
           <input type="text" id="valorInscripcion" class="uppercase-input" value="" placeholder="Ej. 259" required onblur="formatearMontoUSD(this)">
         </div>
         <div class="form-group">
-          <label>Fecha Compromiso de Pago:</label>
+          <label id="lblFechaPago">Fecha Compromiso de Pago:</label>
           <input type="date" id="fechaPago" required>
         </div>
+
+        <!-- SECCIÓN DE PAGO PARCIAL (2DA CUOTA) -->
+        <div class="parcial-fields-box" id="boxPagoParcial">
+          <div class="parcial-title">💳 Configuración de la 2ª Cuota (Saldo Restante)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Monto 2ª Cuota (Saldo Restante):</label>
+              <input type="text" id="valorCuota2" class="uppercase-input" placeholder="Ej. 129" onblur="formatearMontoUSD(this)">
+            </div>
+            <div class="form-group">
+              <label>Fecha 2ª Cuota (Pago Restante):</label>
+              <input type="date" id="fechaCuota2">
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Nombre del Asesor (Representante):</label>
           <input type="text" id="representante" class="uppercase-input" placeholder="Ej. DIEGO CARIDAD" required oninput="this.value = this.value.toUpperCase()">
@@ -283,9 +312,21 @@
 
   <div class="pdf-section-title">3. RESERVA Y COMPROMISO</div>
   <p>El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="pdfClausulaSancion">, de no hacerlo dentro del plazo acordado, entiende que incurre en una sanción administrativa de $100 por los gastos ocasionados a la escuela.</span></p>
-  <table class="data-table">
-    <tr><td><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span></td></tr>
-  </table>
+  
+  <div id="pdfSinglePaymentBox">
+    <table class="data-table">
+      <tr><td><strong>Fecha acordada para realizar el pago:</strong> <span id="pdfFechaPago">-</span></td></tr>
+    </table>
+  </div>
+
+  <div id="pdfParcialPaymentBox" style="display: none;">
+    <table class="data-table">
+      <tr><td colspan="2" style="background:#e0f2fe; color:#0369a1; font-weight:bold;">ACUERDO DE PAGO PARCIAL (2 CUOTAS)</td></tr>
+      <tr><td><strong>1ª Cuota (Abono Inicial):</strong> <span id="pdfMontoC1">-</span></td><td><strong>Fecha Límite 1ª Cuota:</strong> <span id="pdfFechaC1">-</span></td></tr>
+      <tr><td><strong>2ª Cuota (Saldo Restante):</strong> <span id="pdfMontoC2">-</span></td><td><strong>Fecha Límite 2ª Cuota:</strong> <span id="pdfFechaC2">-</span></td></tr>
+    </table>
+  </div>
+
   <p>El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
 
   <div class="pdf-section-title" id="pdfTituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
@@ -358,7 +399,7 @@
   function formatearFechaConTexto(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
-    if (str.includes("(")) return str;
+    if (str.includes("(") || str.includes("|")) return str;
 
     let d = parseFechaObjeto(str);
     let abreviado = formatearFechaEng(str);
@@ -367,10 +408,32 @@
     return `${abreviado} (${textoEscrito})`;
   }
 
-  function obtenerFechaMas7Dias() {
+  function obtenerFechaMas7Dias(offset = 7) {
     const hoy = new Date();
-    hoy.setDate(hoy.getDate() + 7);
+    hoy.setDate(hoy.getDate() + offset);
     return hoy.toISOString().split('T')[0];
+  }
+
+  function toggleModalidadPago() {
+    const modalidad = document.getElementById('tipoCurso').value;
+    const boxParcial = document.getElementById('boxPagoParcial');
+    const lblValor = document.getElementById('lblValorInscripcion');
+    const lblFecha = document.getElementById('lblFechaPago');
+
+    if (modalidad === "Pago Parcial") {
+      boxParcial.style.display = "block";
+      lblValor.innerText = "Monto 1ª Cuota (Abono Inicial):";
+      lblFecha.innerText = "Fecha 1ª Cuota (Abono Inicial):";
+      document.getElementById('valorCuota2').required = true;
+      document.getElementById('fechaCuota2').required = true;
+      document.getElementById('fechaCuota2').value = obtenerFechaMas7Dias(21);
+    } else {
+      boxParcial.style.display = "none";
+      lblValor.innerText = "Valor Inscripción Total:";
+      lblFecha.innerText = "Fecha Compromiso de Pago:";
+      document.getElementById('valorCuota2').required = false;
+      document.getElementById('fechaCuota2').required = false;
+    }
   }
 
   window.addEventListener('load', () => {
@@ -378,7 +441,7 @@
     if (usuarioGuardado) {
       mostrarDashboard(usuarioGuardado);
     }
-    document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
+    document.getElementById('fechaPago').value = obtenerFechaMas7Dias(7);
   });
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -605,7 +668,7 @@
     document.getElementById('email').value = data.email;
     document.getElementById('direccion').value = data.direccion;
     document.getElementById('valorInscripcion').value = data.valorInscripcion;
-    document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
+    document.getElementById('fechaPago').value = obtenerFechaMas7Dias(7);
     
     if (data.representante) {
       document.getElementById('representante').value = data.representante;
@@ -688,6 +751,32 @@
     const fechaPago = document.getElementById('fechaPago').value;
     const representante = document.getElementById('representante').value.trim().toUpperCase();
 
+    let fechaPagoCadena = "";
+    let valorTotalGuardar = valorInscripcion;
+
+    if (tipoCurso === "Pago Parcial") {
+      let v2 = document.getElementById('valorCuota2').value.trim();
+      let f2 = document.getElementById('fechaCuota2').value;
+
+      let r2 = parseFloat(v2.replace(/[^0-9.]/g, ''));
+      if (!isNaN(r2)) {
+        v2 = "$" + r2.toFixed(2) + " USD";
+      }
+
+      let f1Limpia = formatearFechaEng(fechaPago);
+      let f2Limpia = formatearFechaEng(f2);
+
+      // Formato combinado de 2 cuotas para la base de datos
+      fechaPagoCadena = `1ª Cuota: ${valorInscripcion} (${f1Limpia}) | 2ª Cuota: ${v2} (${f2Limpia})`;
+      
+      // Suma visual de valor total
+      if (!isNaN(rawNum) && !isNaN(r2)) {
+        valorTotalGuardar = "$" + (rawNum + r2).toFixed(2) + " USD (Pago Parcial en 2 Cuotas)";
+      }
+    } else {
+      fechaPagoCadena = fechaPago;
+    }
+
     const fullLink = `${BASE_URL}?id=${encodeURIComponent(codigoEstudiante)}`;
 
     document.getElementById('finalUrl').value = fullLink;
@@ -699,7 +788,16 @@
     document.getElementById('wspLink').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(wspMessage)}`;
 
     const datosGuardar = {
-      nombre, telefono, email, direccion, valorInscripcion, fechaPago, representante, codigoEstudiante, tipoCurso, accion: "CREAR"
+      nombre,
+      telefono,
+      email,
+      direccion,
+      valorInscripcion: valorTotalGuardar,
+      fechaPago: fechaPagoCadena,
+      representante,
+      codigoEstudiante,
+      tipoCurso,
+      accion: "CREAR"
     };
 
     fetch(SCRIPT_URL, {
@@ -717,7 +815,8 @@
     document.getElementById('resultCard').style.display = 'none';
     document.getElementById('codigoEstudiante').value = 'ABG-';
     document.getElementById('valorInscripcion').value = '';
-    document.getElementById('fechaPago').value = obtenerFechaMas7Dias();
+    document.getElementById('fechaPago').value = obtenerFechaMas7Dias(7);
+    toggleModalidadPago();
   }
 
   function copiarLink() {
@@ -755,7 +854,24 @@
     document.getElementById('pdfDireccion').innerText = data.direccion;
     document.getElementById('pdfFechaAcuerdo').innerText = formatearFechaEng(data.fechaRegistro);
     document.getElementById('pdfValor').innerText = data.valorInscripcion;
-    document.getElementById('pdfFechaPago').innerText = formatearFechaConTexto(data.fechaPago);
+
+    // Manejo de tabla en PDF para Pago Parcial vs Pago Único
+    const fPagoRaw = data.fechaPago || "";
+    if (tipoCursoSeleccionado === "Pago Parcial" || fPagoRaw.includes("|")) {
+      document.getElementById('pdfSinglePaymentBox').style.display = "none";
+      document.getElementById('pdfParcialPaymentBox').style.display = "block";
+
+      let partes = fPagoRaw.split("|");
+      document.getElementById('pdfMontoC1').innerText = partes[0] ? partes[0].trim() : "-";
+      document.getElementById('pdfFechaC1').innerText = "Fecha Acordada";
+      document.getElementById('pdfMontoC2').innerText = partes[1] ? partes[1].trim() : "-";
+      document.getElementById('pdfFechaC2').innerText = "Fecha Acordada";
+    } else {
+      document.getElementById('pdfSinglePaymentBox').style.display = "block";
+      document.getElementById('pdfParcialPaymentBox').style.display = "none";
+      document.getElementById('pdfFechaPago').innerText = formatearFechaConTexto(fPagoRaw);
+    }
+
     document.getElementById('pdfRepresentante').innerText = data.representante;
     document.getElementById('pdfCodigo').innerText = data.codigoEstudiante;
 
