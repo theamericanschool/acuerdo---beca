@@ -60,6 +60,18 @@
       font-weight: bold;
     }
 
+    .parcial-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .parcial-table td {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
+
     @media (max-width: 480px) { .data-grid { grid-template-columns: 1fr; } .logo-img { max-width: 190px; } }
   </style>
 </head>
@@ -101,9 +113,29 @@
 
     <div class="section-title">3. RESERVA Y COMPROMISO</div>
     <p class="text-block">El beneficiario manifiesta su voluntad de utilizar el beneficio otorgado y, al firmar este acuerdo, solicita reservar su cupo de beca para realizar posteriormente el pago de inscripción<span id="clausulaSancion"></span>.</p>
-    <div class="data-grid" style="grid-template-columns: 1fr;">
+    
+    <!-- PAGO ÚNICO -->
+    <div id="singlePaymentView" class="data-grid" style="grid-template-columns: 1fr;">
       <p><strong>Fecha acordada para realizar el pago:</strong> <span id="fechaPago">-</span></p>
     </div>
+
+    <!-- PAGO PARCIAL (2 CUOTAS) -->
+    <div id="parcialPaymentView" style="display: none;">
+      <table class="parcial-table">
+        <tr style="background:#e0f2fe; color:#0369a1; font-weight:bold;">
+          <td colspan="2">💳 CRONOGRAMA DE PAGO PARCIAL (2 CUOTAS)</td>
+        </tr>
+        <tr>
+          <td><strong>1ª Cuota (Abono Inicial):</strong></td>
+          <td><span id="txtCuota1">-</span></td>
+        </tr>
+        <tr>
+          <td><strong>2ª Cuota (Saldo Restante):</strong></td>
+          <td><span id="txtCuota2">-</span></td>
+        </tr>
+      </table>
+    </div>
+
     <p class="text-block">El beneficiario se compromete a realizar el pago de inscripción en la fecha acordada y a proporcionar información correcta y actualizada para completar su proceso de activación.</p>
 
     <div class="section-title" id="tituloCompromisos">4. COMPROMISOS DE LA ESCUELA</div>
@@ -133,7 +165,7 @@
     <form id="signForm" style="margin-top: 20px;">
       <label style="font-size: 13px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
         <input type="checkbox" id="checkTerms" required style="margin-top: 3px;">
-        <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la aceptación de las condiciones aquí establecidas.</span>
+        <span><strong>YO, confirmo que he leído y acepto los términos y condiciones establecidas por la compañía.</strong> La firma electrónica del presente documento representa la acceptance de las condiciones aquí establecidas.</span>
       </label>
       <button type="submit" class="btn-sign" id="btnSign">Aceptar y Firmar Digitalmente</button>
     </form>
@@ -188,7 +220,7 @@
   function formatearFechaConTexto(fechaInput) {
     if (!fechaInput) return "-";
     let str = fechaInput.toString().trim();
-    if (str.includes("(")) return str;
+    if (str.includes("(") || str.includes("|")) return str;
 
     let d = parseFechaObjeto(str);
     let abreviado = formatearFechaEng(str);
@@ -255,7 +287,7 @@
       direccion: data.direccion || '-',
       fechaAcuerdo: formatearFechaEng(data.fechaRegistro || new Date()),
       valorInscripcion: data.valorInscripcion || '-',
-      fechaPago: formatearFechaConTexto(data.fechaPago || ''),
+      fechaPago: data.fechaPago || '',
       representante: data.representante || '-',
       codigoEstudiante: data.codigoEstudiante || '-'
     };
@@ -282,9 +314,23 @@
     document.getElementById('direccion').innerText = datosEstudiante.direccion;
     document.getElementById('fechaAcuerdo').innerText = datosEstudiante.fechaAcuerdo;
     document.getElementById('valorInscripcion').innerText = datosEstudiante.valorInscripcion;
-    document.getElementById('fechaPago').innerText = datosEstudiante.fechaPago;
     document.getElementById('representante').innerText = datosEstudiante.representante;
     document.getElementById('codigoEstudiante').innerText = datosEstudiante.codigoEstudiante;
+
+    // DESGLOSE DE PAGO ÚNICO VS PAGO PARCIAL
+    const rawPago = datosEstudiante.fechaPago;
+    if (datosEstudiante.tipoCurso === "Pago Parcial" || rawPago.includes("|")) {
+      document.getElementById('singlePaymentView').style.display = "none";
+      document.getElementById('parcialPaymentView').style.display = "block";
+
+      let partes = rawPago.split("|");
+      document.getElementById('txtCuota1').innerText = partes[0] ? partes[0].trim() : "-";
+      document.getElementById('txtCuota2').innerText = partes[1] ? partes[1].trim() : "-";
+    } else {
+      document.getElementById('singlePaymentView').style.display = "grid";
+      document.getElementById('parcialPaymentView').style.display = "none";
+      document.getElementById('fechaPago').innerText = formatearFechaConTexto(rawPago);
+    }
 
     document.getElementById('contractBody').style.display = 'block';
 
